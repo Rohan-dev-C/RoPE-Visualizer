@@ -186,7 +186,10 @@ button.on{background:var(--green)}
     <span class="nav-brand">RoPE Visualizer</span>
     <ul class="nav-links">
       <li><a href="#why">The Problem</a></li>
+      <li><a href="#standard">Sinusoidal PE</a></li>
       <li><a href="#rope">Rotation</a></li>
+      <li><a href="#relative">Relative Gap</a></li>
+      <li><a href="#multifreq">Frequencies</a></li>
       <li><a href="#prediction">Prediction</a></li>
       <li><a href="#compare">Comparison</a></li>
     </ul>
@@ -213,10 +216,12 @@ button.on{background:var(--green)}
 <section id="why">
   <div class="container">
     <div class="sec-label">Section 01</div>
-    <h2>Why Transformers Can't Tell Words Apart by Order</h2>
+    <h2>Why Attention Needs Position</h2>
 
     <p>
-      A transformer sees a list of tokens, but attention by itself does not know which token came first.
+      Content-only self-attention processes tokens in parallel. Without position information,
+      reordering the input just reorders the corresponding outputs, so attention has no built-in
+      notion of first, second, third, etc.
     </p>
 
     <div class="two-col">
@@ -241,8 +246,8 @@ button.on{background:var(--green)}
           between query and key vectors.</p>
           <p>This can tell whether two token vectors match, but it does not say which one came first.</p>
 
-          <p>Unless position is added, the same words keep the same pairwise scores
-          when their order changes.</p>
+          <p>Unless position is injected, the same token-content comparisons are reused
+          when the order changes.</p>
 
           <p style="margin-top:.5rem">Order matters. Cat chased dog and dog chased cat use the same words,
           but they mean different things.</p>
@@ -488,7 +493,7 @@ button.on{background:var(--green)}
     <h2>Why Rotation Gives Relative Position Directly</h2>
 
     <p>
-      RoPE makes attention depend on distance between tokens.
+      RoPE makes attention depend on the signed relative offset between tokens.
     </p>
 
     <div class="two-col">
@@ -508,10 +513,11 @@ button.on{background:var(--green)}
           After RoPE&nbsp;&nbsp;q̃ = R(mθ)·q, &nbsp;k̃ = R(nθ)·k<br><br>
           q̃ · k̃ = (q₁k₁ + q₂k₂)·cos((<span class="hl">m−n</span>)θ)<br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ (q₁k₂ − q₂k₁)·sin((<span class="hl">m−n</span>)θ)<br><br>
-          <span class="ann">= f(q, k, m−n). Only the distance between positions remains.</span>
+          <span class="ann">= f(q, k, m−n). Only the signed relative offset remains.</span>
         </div>
         <p style="font-size:.82rem">
-          The absolute positions cancel out. The gap <span class="chip">m−n</span> stays.
+          The absolute positions cancel out. The signed gap <span class="chip">m−n</span> stays.
+          Some slides write <span class="chip">n−m</span> depending on convention; the key idea is that only the relative offset matters.
         </p>
       </div>
     </div>
@@ -525,10 +531,10 @@ button.on{background:var(--green)}
     <h3 style="margin-top:2rem">Verify It Yourself</h3>
     <p>
       Set m to 3 and n to 7. Then lock the gap and move either slider.
-      The positions change, but the gap stays the same.
+      The absolute positions change, but the signed gap stays the same.
     </p>
     <p>
-      The dot product stays the same because this one pair only sees the gap.
+      With the fixed q and k slices shown here, the dot product stays the same whenever the signed gap stays the same.
     </p>
     <p>
       This demo shows one dimension pair. A real attention score sums over all pairs.
@@ -572,7 +578,7 @@ button.on{background:var(--green)}
 
     <div class="insight orange" style="margin-top:1.5rem">
       <p><strong>Why this matters.</strong> Attention often needs distance, not just position.
-      RoPE puts that distance directly into the query and key score.</p>
+      RoPE puts that relative offset directly into the query and key score.</p>
     </div>
   </div>
 </section>
@@ -657,7 +663,7 @@ button.on{background:var(--green)}
             i = 0 → θ ≈ 1.00  (fast)<br>
             i = 1 → θ ≈ 0.18  (slower)<br>
             …<br>
-            last pair → θ is near 0.0001 (very slow)
+            later pairs → θ is very small (very slow)
           </span>
         </div>
 
@@ -749,7 +755,7 @@ button.on{background:var(--green)}
         </tr>
         <tr>
           <td>Relative positions</td>
-          <td><span class="so">⚠</span> Available through wave structure, but not directly in the attention score</td>
+          <td><span class="so">⚠</span> Available through wave structure, but not as an explicit single gap term in the basic attention score</td>
           <td><span class="ok">✓</span> Explicit, because (m−n) appears directly in every dot product</td>
         </tr>
         <tr>
@@ -769,15 +775,15 @@ button.on{background:var(--green)}
         </tr>
         <tr>
           <td>Used in</td>
-          <td>Original Transformer, BERT, early GPT models</td>
-          <td>LLaMA 2 and 3, Mistral, Falcon, Gemma, PaLM 2, and many modern LLMs</td>
+          <td>Original Transformer used fixed sinusoidal PE; BERT/GPT-style models often used learned absolute position embeddings instead</td>
+          <td>Many modern decoder LLMs use RoPE-style rotary embeddings</td>
         </tr>
       </tbody>
     </table>
 
     <div class="insight green" style="margin-top:2rem">
       <p><strong>The big picture.</strong> RoPE encodes position in a way attention can use directly.</p>
-      <p>When two tokens compare query and key vectors, their relative distance is already part of the score.</p>
+      <p>When two tokens compare query and key vectors, their signed relative offset is already part of the score.</p>
     </div>
   </div>
 </section>
