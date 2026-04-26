@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RoPE: Rotary Position Embeddings, Interactive Demo</title>
+<title>RoPE Visualizer</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -34,26 +34,22 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;
   background:rgba(13,17,23,.9);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--border);padding:.6rem 0}
 nav .container{display:flex;align-items:center;gap:2rem;flex-wrap:wrap}
-.nav-brand{font-weight:800;font-size:.9rem;letter-spacing:-.01em;
-  background:linear-gradient(90deg,var(--purple-light),var(--cyan));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex-shrink:0}
+.nav-brand{font-weight:800;font-size:.9rem;letter-spacing:-.01em;color:var(--text);flex-shrink:0}
 .nav-links{display:flex;gap:1.1rem;list-style:none;flex-wrap:wrap}
 .nav-links a{color:var(--muted);font-size:.8rem;transition:color .18s}
 .nav-links a:hover{color:var(--text)}
 
 /* ── Hero ── */
-#hero{min-height:100vh;display:flex;align-items:center;
+#hero{min-height:82vh;display:flex;align-items:center;
   position:relative;overflow:hidden;padding-top:4rem}
-#hero-canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.22}
+#hero-canvas{display:none}
 .hero-content{position:relative;z-index:1}
-.hero-title{background:linear-gradient(135deg,var(--purple-light) 20%,var(--cyan));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  display:inline-block;margin-bottom:1.25rem}
-.hero-sub{font-size:1.08rem;color:var(--muted);max-width:600px;margin-bottom:2rem;line-height:1.75}
+.hero-title{color:var(--text);display:inline-block;margin-bottom:1.25rem}
+.hero-sub{font-size:1.02rem;color:var(--muted);max-width:570px;margin-bottom:2rem;line-height:1.75}
 .pills{display:flex;gap:.65rem;flex-wrap:wrap;margin-bottom:3rem}
 .pill{background:var(--surface);border:1px solid var(--border);padding:.28rem .85rem;
   border-radius:100px;font-size:.78rem;color:var(--muted)}
-.pill.hi{border-color:var(--purple);color:var(--purple-light)}
+.pill.hi{border-color:var(--border);color:var(--muted)}
 .scroll-hint{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);
   display:flex;flex-direction:column;align-items:center;gap:.4rem;
   color:var(--muted);font-size:.75rem;animation:bob 2s ease-in-out infinite}
@@ -75,11 +71,13 @@ nav .container{display:flex;align-items:center;gap:2rem;flex-wrap:wrap}
 .callout-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;
   color:var(--purple);margin-bottom:.4rem;font-weight:700}
 .callout p{margin:0;font-size:.88rem}
+.callout p + p{margin-top:.55rem}
 
 /* ── Insight stripe ── */
 .insight{border-left:3px solid var(--purple);padding:.85rem 1.1rem;
   background:var(--surface2);border-radius:0 8px 8px 0;margin:1.1rem 0}
 .insight p{margin:0;color:var(--text);font-size:.9rem}
+.insight p + p{margin-top:.55rem}
 .insight.green{border-color:var(--green)}
 .insight.orange{border-color:var(--orange)}
 
@@ -101,7 +99,7 @@ nav .container{display:flex;align-items:center;gap:2rem;flex-wrap:wrap}
 .steps{display:flex;flex-direction:column;gap:.9rem;margin:1rem 0}
 .step{display:flex;gap:.85rem;align-items:flex-start}
 .sn{min-width:24px;height:24px;border-radius:50%;
-  background:linear-gradient(135deg,var(--purple),var(--cyan));
+  background:var(--purple);
   display:flex;align-items:center;justify-content:center;
   font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0;margin-top:.2rem}
 .st{color:var(--text);font-size:.875rem;line-height:1.6}
@@ -116,16 +114,14 @@ nav .container{display:flex;align-items:center;gap:2rem;flex-wrap:wrap}
 .cv{color:var(--purple-light);font-weight:600}
 input[type=range]{width:100%;accent-color:var(--purple);cursor:pointer;height:18px;
   appearance:none;background:transparent}
-input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:999px;
-  background:linear-gradient(90deg,rgba(139,92,246,.78),rgba(6,182,212,.7))}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:999px;background:rgba(139,92,246,.75)}
 input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;
   border-radius:50%;background:var(--text);border:3px solid var(--purple);
   margin-top:-6px;box-shadow:0 0 0 3px rgba(139,92,246,.16);
   transition:transform .15s ease,box-shadow .15s ease}
 input[type=range]:active::-webkit-slider-thumb{transform:scale(1.08);
   box-shadow:0 0 0 6px rgba(139,92,246,.18)}
-input[type=range]::-moz-range-track{height:6px;border-radius:999px;
-  background:linear-gradient(90deg,rgba(139,92,246,.78),rgba(6,182,212,.7))}
+input[type=range]::-moz-range-track{height:6px;border-radius:999px;background:rgba(139,92,246,.75)}
 input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
   background:var(--text);border:3px solid var(--purple);
   box-shadow:0 0 0 3px rgba(139,92,246,.16)}
@@ -190,11 +186,8 @@ button.on{background:var(--green)}
     <span class="nav-brand">RoPE Visualizer</span>
     <ul class="nav-links">
       <li><a href="#why">The Problem</a></li>
-      <li><a href="#standard">Standard PE</a></li>
       <li><a href="#rope">Rotation</a></li>
-      <li><a href="#relative">Key Insight</a></li>
       <li><a href="#prediction">Prediction</a></li>
-      <li><a href="#multifreq">Frequencies</a></li>
       <li><a href="#compare">Comparison</a></li>
     </ul>
   </div>
@@ -204,21 +197,11 @@ button.on{background:var(--green)}
 <section id="hero">
   <canvas id="hero-canvas"></canvas>
   <div class="container hero-content">
-    <div class="sec-label">Interactive Demo · CS 4782</div>
     <h1 class="hero-title">Rotary Position<br>Embeddings</h1>
     <p class="hero-sub">
-      A transformer processes all words at once. How does it know which word came first?
-      The answer used in almost every modern language model (LLaMA, Mistral, GPT-4) is
-      <strong>RoPE</strong>: instead of stamping a position number onto each word,
-      it <em>rotates</em> the word's internal representation by an angle that encodes its position.
-      This page walks you through exactly why that works in an interactive way.
+      Transformers need a way to know word order.
+      RoPE rotates query and key vectors based on token position.
     </p>
-    <div class="pills">
-      <span class="pill hi">Transformers</span>
-      <span class="pill hi">Positional Encoding</span>
-      <span class="pill">Self Attention</span>
-      <span class="pill">2D Rotation</span>
-    </div>
   </div>
   <div class="scroll-hint">
     scroll to begin
@@ -229,12 +212,11 @@ button.on{background:var(--green)}
 <!-- ═══════════════ SECTION 1: THE PROBLEM ═══════════════ -->
 <section id="why">
   <div class="container">
-    <div class="sec-label">Section 01: The Problem</div>
+    <div class="sec-label">Section 01</div>
     <h2>Why Transformers Can't Tell Words Apart by Order</h2>
 
     <p>
-      Before we can understand RoPE, we need to understand the problem it solves.
-      Let's start with two key ideas: <em>tokens</em> and <em>attention</em>.
+      A transformer sees a list of tokens, but attention by itself does not know which token came first.
     </p>
 
     <div class="two-col">
@@ -242,48 +224,43 @@ button.on{background:var(--green)}
         <div class="callout">
           <div class="callout-title">What is a token?</div>
           <p>A <strong>token</strong> is the smallest chunk the model works with.
-          It is usually a word or a common piece of a word, for example "running" becomes "run" plus "ning".
-          Each token gets converted into an <strong>embedding</strong>: a list of hundreds of numbers
-          that encode its meaning. Think of it as the token's "personality" in math form.</p>
+          It can be a word or part of a word.</p>
+          <p>Each token becomes an <strong>embedding</strong>, which is a list of numbers that stores meaning.</p>
         </div>
 
         <div class="callout">
           <div class="callout-title">What is attention?</div>
-          <p><strong>Self attention</strong> is how a transformer lets every token "look at" every other token.
-          To attend to a token, the model computes a similarity score between the current token
-          and all others, then uses those scores to blend information from across the sequence.
-          This is what lets "bank" in "river bank" use the surrounding words to understand
-          it means riverbank, not a financial bank.</p>
+          <p><strong>Self attention</strong> lets each token compare itself with the other tokens.
+          The model gives higher weight to tokens that seem more useful for context.</p>
         </div>
       </div>
       <div>
         <div class="callout">
           <div class="callout-title">So what's the problem?</div>
           <p>Attention scores are computed by taking a <strong>dot product</strong>
-          (multiply and sum) between query and key vectors. That comparison can tell whether
-          two token vectors match, but it has no built in slot for "this word came first."
-          Unless position is added somehow, the same words keep the same pairwise scores
-          even when their order changes.</p>
+          between query and key vectors.</p>
+          <p>This can tell whether two token vectors match, but it does not say which one came first.</p>
 
-          <p style="margin-top:.5rem">This means: without extra help, "The cat chased the dog" and
-          "The dog chased the cat" contain the same token identities, but the role of each word
-          depends on order. The model needs a position signal to tell subject, verb, and object apart.</p>
+          <p>Unless position is added, the same words keep the same pairwise scores
+          when their order changes.</p>
+
+          <p style="margin-top:.5rem">Order matters. Cat chased dog and dog chased cat use the same words,
+          but they mean different things.</p>
+          <p>The model needs position to tell the roles apart.</p>
         </div>
       </div>
     </div>
 
     <p style="margin-top:1.5rem">
-      <strong>Try the demo below.</strong> Press Shuffle to rearrange the tokens.
-      The heatmap shows content based attention before any position signal is added.
-      The scores follow the word identities rather than the positions, so the model still
-      does not know which word came first.
+      <strong>Try the demo below.</strong> Press Shuffle.
+      The toy heatmap uses content only. The scores follow the words, not the positions.
     </p>
 
     <div class="viz-wrap" style="margin-top:.75rem">
       <div style="padding:1.25rem 1.5rem">
         <div id="token-display" class="token-row"></div>
         <div style="margin:.9rem 0 .4rem;font-size:.77rem;color:var(--muted)">
-          <strong style="color:var(--text)">Attention heatmap</strong>: each cell (row i, col j)
+          <strong style="color:var(--text)">Attention heatmap</strong>. Each cell
           shows how strongly token i attends to token j. Brighter = more attention.
           <em>Shuffle the words and the same word pair scores move with the tokens.</em>
         </div>
@@ -298,23 +275,17 @@ button.on{background:var(--green)}
       </div>
     </div>
 
-    <div class="divider"><span>So how do we fix it?</span></div>
+    <div class="divider"><span>The fix</span></div>
 
     <div class="steps">
       <div class="step"><div class="sn">1</div>
-        <div class="st">We inject a <strong>position signal</strong> into each token's embedding
-        before computing attention. The signal tells the model "this is the 3rd word"
-        or "this is the 7th word."</div>
+        <div class="st">Add a <strong>position signal</strong> so the model can tell where each token sits.</div>
       </div>
       <div class="step"><div class="sn">2</div>
-        <div class="st">The challenge: the signal must preserve the token's existing meaning
-        while making <em>relative</em> positions easy to use
-        ("these two words are 4 apart") as well as absolute positions ("word is at position 7").</div>
+        <div class="st">The signal should keep token meaning while making distances between tokens easy to compare.</div>
       </div>
       <div class="step"><div class="sn">3</div>
-        <div class="st">Two approaches have been tried: <em>Sinusoidal PE</em> (add a fixed position
-        vector to each embedding) and <em>RoPE</em> (rotate the vectors instead of adding).
-        The next two sections explore both.</div>
+        <div class="st">Sinusoidal PE adds a position vector. RoPE rotates query and key vectors instead.</div>
       </div>
     </div>
   </div>
@@ -323,12 +294,11 @@ button.on{background:var(--green)}
 <!-- ═══════════════ SECTION 2: STANDARD PE ═══════════════ -->
 <section id="standard">
   <div class="container">
-    <div class="sec-label">Section 02: The Old Approach</div>
+    <div class="sec-label">Section 02</div>
     <h2>Standard Sinusoidal Positional Encoding</h2>
 
-    <p>The original Transformer paper (Vaswani et al., 2017) proposed a simple fix:
-    for each position in the sequence, create a unique vector of numbers using
-    sine and cosine waves, then <em>add</em> that vector to the token's embedding.</p>
+    <p>The original Transformer used sine and cosine waves to build a position vector.
+    That vector gets added to the token embedding.</p>
 
     <div class="two-col">
       <div>
@@ -336,43 +306,38 @@ button.on{background:var(--green)}
         <div class="math">
           PE(<span class="hl">pos</span>, <span class="hl">2i</span>)  = sin( <span class="hl">pos</span> / 10000<sup>2i/d</sup> )<br>
           PE(<span class="hl">pos</span>, <span class="hl">2i+1</span>) = cos( <span class="hl">pos</span> / 10000<sup>2i/d</sup> )<br>
-          <span class="ann">Then: new_embedding = token_embedding + PE(pos, :)</span>
+          <span class="ann">new_embedding = token_embedding + PE(pos, :)</span>
         </div>
 
-        <p>Here's what each term means:</p>
+        <p>What the terms mean.</p>
         <div class="term-grid">
           <span class="term-name">pos</span>
-          <span class="term-def">The token's position in the sequence. Use 0 for the first word, 1 for the second, and so on.</span>
+          <span class="term-def">The token position. The first token is 0.</span>
           <span class="term-name">i</span>
-          <span class="term-def">Which <em>pair</em> of embedding dimensions we're filling in (pair 0, pair 1, … up to d/2 pairs total).</span>
+          <span class="term-def">The dimension pair being filled.</span>
           <span class="term-name">d</span>
-          <span class="term-def">The total number of dimensions in the embedding (e.g., 512 or 768). Each pair of dimensions gets one sine and one cosine value.</span>
+          <span class="term-def">The total embedding size.</span>
           <span class="term-name">10000<sup>2i/d</sup></span>
-          <span class="term-def">A <em>wavelength</em> multiplier. Small i gives a small divisor and fast oscillation, which captures nearby positions. Large i gives a large divisor and slow oscillation, which captures far away structure.</span>
+          <span class="term-def">A scale factor. Low pairs change fast. High pairs change slowly.</span>
         </div>
 
         <div class="insight">
-          <p><strong>Intuition:</strong> Imagine encoding a position like binary. You would need
-          fast changing bits for the ones place and slow changing bits for high order digits.
-          Sine/cosine waves at different frequencies do the same thing, but smoothly.
-          Each position gets a unique "fingerprint" made of wave values.</p>
+          <p><strong>Intuition.</strong> Fast waves help separate nearby positions.
+          Slow waves help track longer distances. Together they make a useful position code.</p>
         </div>
 
         <h3 style="margin-top:1.25rem">The Limitation</h3>
-        <p>The model receives <span class="chip">embedding + PE</span> as input. But this means
-        position is mixed into the token vector before attention begins. Sinusoidal PE has useful
-        wave structure, so it can support relative distance, but attention must still learn how to
-        read that structure from the added vectors. RoPE puts relative distance directly inside
-        the query and key comparison used by attention.</p>
+        <p>The model receives <span class="chip">embedding + PE</span> as input. This means
+        position is mixed into the token vector before attention begins.</p>
+        <p>Sinusoidal PE has useful wave structure.</p>
+        <p>Attention still has to learn how to use that structure. RoPE puts distance directly into the query and key comparison.</p>
       </div>
 
       <div>
         <h3>Interactive Heatmap</h3>
         <p style="font-size:.82rem;margin-bottom:.6rem">
-          Each <strong>row</strong> is the PE vector for one position.
-          Each <strong>column</strong> is one embedding dimension.
-          Drag the slider to highlight the vector added to that position's token.
-          Notice how every row is unique. That is what lets the model tell positions apart.
+          Each row is a position. Each column is an embedding dimension.
+          Move the slider to see the vector for one position.
         </p>
         <div class="viz-wrap">
           <canvas id="spe-canvas"></canvas>
@@ -387,9 +352,8 @@ button.on{background:var(--green)}
           </div>
         </div>
         <p style="font-size:.76rem;margin-top:.65rem;color:var(--muted)">
-          Color: <span style="color:var(--purple-light)">■</span> negative values &nbsp;
-          <span style="color:var(--cyan)">■</span> positive values. The highlighted row
-          is the vector <em>added</em> to whatever token sits at that position.
+          Color key <span style="color:var(--purple-light)">■</span> negative values &nbsp;
+          <span style="color:var(--cyan)">■</span> positive values. The highlighted row is added to that token.
         </p>
       </div>
     </div>
@@ -399,13 +363,12 @@ button.on{background:var(--green)}
 <!-- ═══════════════ SECTION 3: ROPE ROTATION ═══════════════ -->
 <section id="rope">
   <div class="container">
-    <div class="sec-label">Section 03: The RoPE Idea</div>
-    <h2>RoPE: Encoding Position by Rotating, Not Adding</h2>
+    <div class="sec-label">Section 03</div>
+    <h2>RoPE Encodes Position by Rotating</h2>
 
     <p>
-      RoPE takes a completely different approach. Instead of adding a position vector to the
-      token embedding <em>before</em> attention, it modifies the <em>query</em> and <em>key</em>
-      vectors <em>during</em> attention by rotating them.
+      RoPE does not add a position vector to the token. It rotates the query and key vectors
+      before attention scores are computed.
     </p>
 
     <div class="two-col" style="margin-bottom:1.5rem">
@@ -413,64 +376,65 @@ button.on{background:var(--green)}
         <div class="callout">
           <div class="callout-title">What are Queries and Keys?</div>
           <p>Inside every attention layer, each token's embedding is projected into three vectors
-          using learned weight matrices:</p>
+          using learned weights.</p>
           <div class="term-grid" style="margin:.5rem 0">
             <span class="term-name">Query (q)</span>
-            <span class="term-def">"What information am I looking for from other tokens?"</span>
+            <span class="term-def">What this token is looking for.</span>
             <span class="term-name">Key (k)</span>
-            <span class="term-def">"What information do I have to offer other tokens?"</span>
+            <span class="term-def">What this token offers.</span>
             <span class="term-name">Value (v)</span>
-            <span class="term-def">"The actual content I pass along once selected."</span>
+            <span class="term-def">The content passed along after attention is weighted.</span>
           </div>
-          <p>The attention score between token A and token B is just <strong>q_A · k_B</strong>
-          (a dot product). RoPE modifies q and k before this dot product.</p>
+          <p>The attention score is <strong>q_A · k_B</strong>. RoPE changes q and k before this score is computed.</p>
         </div>
       </div>
       <div>
         <div class="callout">
-          <div class="callout-title">The Core Idea: Dimension Pairs</div>
+          <div class="callout-title">Dimension pairs</div>
           <p>RoPE treats the embedding as a sequence of <strong>2D slices</strong>.
-          If your embedding has 512 dimensions, RoPE sees it as 256 pairs:
-          (dim 0, dim 1), (dim 2, dim 3), …, (dim 510, dim 511).</p>
+          If an embedding has 512 dimensions, RoPE sees it as 256 pairs.</p>
+          <p>The pairs are dim 0 with dim 1, dim 2 with dim 3, and so on.</p>
           <p>Each pair <span class="chip">(x<sub>2i</sub>, x<sub>2i+1</sub>)</span> is treated
-          as a point in a 2D plane, like an (x, y) coordinate. Then, for a token at position
-          <span class="chip">m</span>, RoPE <em>rotates</em> that 2D point
-          counterclockwise by angle <span class="chip">m · θᵢ</span>.</p>
+          as a point in a 2D plane. For a token at position
+          <span class="chip">m</span>, RoPE rotates that 2D point.</p>
+          <p>The rotation angle is <span class="chip">m · θᵢ</span>.</p>
         </div>
       </div>
     </div>
 
     <div class="callout">
       <div class="callout-title">Why dimension pairs matter</div>
-      <p>A single number cannot rotate by itself. Rotation needs a plane, so RoPE groups dimensions into pairs and rotates each pair as one tiny 2D coordinate system. This matters because every pair keeps two things at once: the content stored in that slice and the angle added by position. Different pairs rotate at different speeds, which lets attention compare nearby tokens using fast pairs and far apart tokens using slow pairs. The full embedding is the combination of all those small planes that carry position information.</p>
+      <p>A single number cannot rotate by itself. Rotation needs a plane, so RoPE groups dimensions into pairs.</p>
+      <p>Each pair keeps content and position together. Fast pairs help nearby tokens. Slow pairs help longer distances.</p>
     </div>
 
     <div class="callout">
       <div class="callout-title">What is the original x?</div>
-      <p>The original <span class="chip">x</span> is not the raw word. The model first turns the token into an embedding, then a learned matrix converts that embedding into a query or key vector. RoPE takes one slice with two numbers from that query or key vector and calls it <span class="chip">x = (x₂ᵢ, x₂ᵢ₊₁)</span>. In the rotation diagram, the purple arrow is this original slice before RoPE changes it. Position starts at <span class="chip">m = 0</span> for the first token, so the first token receives zero rotation and stays exactly where it began.</p>
+      <p>The original <span class="chip">x</span> is a two number slice of a query or key vector.
+      It is not the raw word.</p>
+      <p>The purple arrow shows this slice before RoPE. Position starts at
+      <span class="chip">m = 0</span>, so the first token gets no rotation.</p>
     </div>
 
     <h3>The Rotation Formula</h3>
     <div class="math">
-      For dimension pair i, token at position m:<br><br>
+      For dimension pair i and token position m<br><br>
       &nbsp;&nbsp;θᵢ &nbsp;= 10000<sup>−2i/d</sup> &nbsp;&nbsp;&nbsp;&nbsp;← the rotation <span class="hl">speed</span> for this pair<br>
       &nbsp;&nbsp;φ  &nbsp;= m · θᵢ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← the <span class="hl">angle</span> to rotate by (proportional to position)<br><br>
       &nbsp;&nbsp;x'<sub>2i</sub>   = x<sub>2i</sub> · cos(φ) − x<sub>2i+1</sub> · sin(φ)<br>
       &nbsp;&nbsp;x'<sub>2i+1</sub> = x<sub>2i</sub> · sin(φ) + x<sub>2i+1</sub> · cos(φ)<br>
-      <span class="ann">This is just a standard 2D rotation matrix applied to the pair (x₂ᵢ, x₂ᵢ₊₁).</span>
+      <span class="ann">This is a normal 2D rotation applied to one pair.</span>
     </div>
 
     <div class="two-col" style="margin-top:1.5rem">
       <div>
-        <h3>Try It: Interactive Rotation</h3>
+        <h3>Interactive Rotation</h3>
         <p style="font-size:.85rem">
-          The diagram shows one 2D dimension pair as a point on the unit circle.
-          The <span style="color:#a78bfa;font-weight:600">faint purple vector</span> is the
-          original query or key slice before RoPE. The
-          <span style="color:#06b6d4;font-weight:600">cyan vector</span>
-          is after applying RoPE at position <em>m</em>.
-          The <span style="color:#f59e0b;font-weight:600">orange arc</span> shows the rotation angle.
-          Drag the <strong>position slider</strong> to see the same original slice rotate as the token's position increases.
+          Purple is the original vector. Cyan is the rotated vector.
+        </p>
+        <p style="font-size:.85rem">
+          Move the sliders to change position and rotation speed.
+          This diagram uses a normalized toy slice.
         </p>
         <div class="viz-wrap">
           <canvas id="rope-canvas"></canvas>
@@ -496,30 +460,21 @@ button.on{background:var(--green)}
         <h3>What to Notice</h3>
         <div class="steps">
           <div class="step"><div class="sn">1</div>
-            <div class="st">At <strong>position 0</strong>, the rotation angle is 0, so the vector
-            is unchanged. RoPE says "position 0 means no rotation."</div>
+            <div class="st">At <strong>position 0</strong>, the angle is 0. The vector does not move.</div>
           </div>
           <div class="step"><div class="sn">2</div>
-            <div class="st">Each step in position adds a fixed angle of <em>θᵢ</em> radians.
-            Position 1 → rotate by θᵢ. Position 2 → rotate by 2θᵢ. And so on.</div>
+            <div class="st">Each position step adds another <em>θᵢ</em> radians.</div>
           </div>
           <div class="step"><div class="sn">3</div>
-            <div class="st">Try changing the <strong>dimension pair i</strong>. Higher i gives smaller θᵢ, which means slower rotation.
-            Low index pairs spin fast; high index pairs spin slowly. This is the multiple scale trick
-            explained in Section 6.</div>
+            <div class="st">Higher dimension pairs rotate more slowly. This gives the model multiple scales.</div>
           </div>
           <div class="step"><div class="sn">4</div>
-            <div class="st"><strong>The vector's length never changes.</strong> Rotation only changes
-            direction, not magnitude. This is a key advantage over additive PE, which
-            distorts the embedding's magnitude.</div>
+            <div class="st"><strong>The vector length stays the same.</strong> Rotation changes direction, not size.</div>
           </div>
         </div>
 
         <div class="insight green" style="margin-top:1rem">
-          <p><strong>Why rotation?</strong> Because rotation has a beautiful algebraic property:
-          when you compute the dot product of two rotated vectors, the absolute rotation angles
-          cancel out and only the <em>difference</em> remains. This is the key insight,
-          and we prove it interactively in Section 4.</p>
+          <p><strong>Why rotation?</strong> When two rotated vectors are compared, the score depends on their position difference. That is the key idea.</p>
         </div>
       </div>
     </div>
@@ -529,60 +484,54 @@ button.on{background:var(--green)}
 <!-- ═══════════════ SECTION 4: KEY INSIGHT ═══════════════ -->
 <section id="relative">
   <div class="container">
-    <div class="sec-label">Section 04: The Key Insight</div>
-    <h2>Why Rotation Gives Relative Positions "For Free"</h2>
+    <div class="sec-label">Section 04</div>
+    <h2>Why Rotation Gives Relative Position Directly</h2>
 
     <p>
-      This is the heart of RoPE. Let's trace exactly what happens when two rotated vectors
-      are dotted together during attention.
+      RoPE makes attention depend on distance between tokens.
     </p>
 
     <div class="two-col">
       <div>
-        <h3>Quick reminder: what's a dot product?</h3>
+        <h3>Dot Product</h3>
         <div class="callout">
           <div class="callout-title">Dot Product = Similarity</div>
           <p>Given two vectors <strong>a = [a₁, a₂]</strong> and <strong>b = [b₁, b₂]</strong>,
-          the dot product is <span class="chip">a · b = a₁b₁ + a₂b₂</span>.
-          Geometrically, it equals <span class="chip">|a| |b| cos(angle between them)</span>.
-          A large positive dot product means the vectors point in similar directions
-          (the tokens are "similar" or "relevant" to each other).
-          In attention, this score decides how much one token attends to another.</p>
+          the dot product is <span class="chip">a · b = a₁b₁ + a₂b₂</span>.</p>
+          <p>A larger score means the vectors match better. In attention, this controls how much one token uses another token.</p>
         </div>
       </div>
       <div>
         <h3>The math, step by step</h3>
         <div class="math">
           Let q = query at position m, k = key at position n.<br>
-          After RoPE: q̃ = R(mθ)·q, &nbsp;k̃ = R(nθ)·k<br><br>
-          q̃ · k̃ = (q₁k₁ + q₂k₂)·cos(<span class="hl">m−n</span>)θ<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ (q₁k₂ − q₂k₁)·sin(<span class="hl">m−n</span>)θ<br><br>
-          <span class="ann">= f(q, k, m−n). Only the relative position (m−n) appears!</span>
+          After RoPE&nbsp;&nbsp;q̃ = R(mθ)·q, &nbsp;k̃ = R(nθ)·k<br><br>
+          q̃ · k̃ = (q₁k₁ + q₂k₂)·cos((<span class="hl">m−n</span>)θ)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ (q₁k₂ − q₂k₁)·sin((<span class="hl">m−n</span>)θ)<br><br>
+          <span class="ann">= f(q, k, m−n). Only the distance between positions remains.</span>
         </div>
         <p style="font-size:.82rem">
-          The derivation uses the cosine identity for subtracting angles: cos(mθ−nθ) = cos((m−n)θ).
-          The absolute positions m and n vanish. Only their difference survives.
+          The absolute positions cancel out. The gap <span class="chip">m−n</span> stays.
         </p>
       </div>
     </div>
 
     <div class="insight" style="margin-top:1rem">
-      <p><strong>The compass needle analogy.</strong>
-      Imagine two compass needles, each pointing in some direction.
-      Their relative angle is what matters for how "similar" they are.
-      Now rotate <em>both</em> needles by the same amount. The relative angle between them
-      doesn't change. RoPE does exactly this: rotating q by mθ and k by nθ is like rotating
-      both needles by their respective positions. When you compute the dot product,
-      only the <em>difference</em> in rotation (m−n)θ survives.</p>
+      <p><strong>Simple picture.</strong>
+      Think of two arrows. Their relative angle matters.</p>
+      <p>RoPE rotates each arrow by its token position. When attention compares them, the score keeps the gap.</p>
     </div>
 
     <h3 style="margin-top:2rem">Verify It Yourself</h3>
     <p>
-      The diagram below shows a query vector (at position <em>m</em>) and a key vector
-      (at position <em>n</em>), each rotated by RoPE. The dot product is displayed on the right.
-      <strong>Try this experiment:</strong> set m=3, n=7 (gap = −4). Note the dot product.
-      Then press <em>Lock Relative Gap</em> and drag either slider. Both positions move
-      together, keeping the gap at −4. The dot product never changes.
+      Set m to 3 and n to 7. Then lock the gap and move either slider.
+      The positions change, but the gap stays the same.
+    </p>
+    <p>
+      The dot product stays the same because this one pair only sees the gap.
+    </p>
+    <p>
+      This demo shows one dimension pair. A real attention score sums over all pairs.
     </p>
 
     <div class="viz-wrap" style="margin-top:.75rem">
@@ -622,11 +571,8 @@ button.on{background:var(--green)}
     </div>
 
     <div class="insight orange" style="margin-top:1.5rem">
-      <p><strong>Why does this matter?</strong> Standard PE gives the model absolute positions
-      ("this word is at position 42"), and the model must <em>learn</em> what "being 5 apart"
-      means from training data. RoPE <em>bakes in</em> relative position at the mathematical level.
-      The dot product is literally a function of (m−n). The model gets relative positions
-      for free, without having to learn them.</p>
+      <p><strong>Why this matters.</strong> Attention often needs distance, not just position.
+      RoPE puts that distance directly into the query and key score.</p>
     </div>
   </div>
 </section>
@@ -634,56 +580,61 @@ button.on{background:var(--green)}
 <!-- ═══════════════ SECTION 5: PREDICTION ═══════════════ -->
 <section id="prediction">
   <div class="container">
-    <div class="sec-label">Section 05: Prediction</div>
+    <div class="sec-label">Section 05</div>
     <h2>How the Model Actually Predicts the Next Word</h2>
 
     <p>
-      RoPE helps attention understand word order, but attention is only one part of prediction.
-      The model does not simply find the nearest point, and it does not simply pick the word with
-      the smallest angle difference. Dot products are used, but they are used in two different places.
+      RoPE helps attention use word order.
+    </p>
+    <p>
+      It does not pick the next word by finding the nearest point or the smallest angle.
+      Prediction uses several steps.
     </p>
 
     <div class="pred-flow">
       <div class="pred-box">
         <div class="pred-num">1</div>
         <div class="pred-title">Tokens become vectors</div>
-        <div class="pred-copy">The prompt is split into tokens. Each token is converted into an embedding, which is a learned vector that represents that token in context.</div>
+        <div class="pred-copy">The prompt is split into tokens. Each token becomes a vector.</div>
       </div>
       <div class="pred-box">
         <div class="pred-num">2</div>
         <div class="pred-title">Attention compares tokens</div>
-        <div class="pred-copy">Each query is compared with allowed keys using dot products. In next word prediction, future tokens are masked out, so a token can only use earlier context.</div>
+        <div class="pred-copy">Queries and keys are compared with dot products. Future tokens are hidden.</div>
       </div>
       <div class="pred-box">
         <div class="pred-num">3</div>
         <div class="pred-title">Scores become weights</div>
-        <div class="pred-copy">The dot product scores are passed through softmax. This turns them into attention weights, which say how much information to copy from each previous token.</div>
+        <div class="pred-copy">Softmax turns scores into weights. Higher weights mean more attention.</div>
       </div>
       <div class="pred-box">
         <div class="pred-num">4</div>
         <div class="pred-title">Layers refine context</div>
-        <div class="pred-copy">Many attention and feedforward layers repeat this process. The final vector at the last position becomes the model's summary of what should come next.</div>
+        <div class="pred-copy">Many layers repeat this. The last vector summarizes the context.</div>
       </div>
       <div class="pred-box">
         <div class="pred-num">5</div>
         <div class="pred-title">Vocabulary is scored</div>
-        <div class="pred-copy">A final learned matrix gives every possible next token a score. Softmax converts those scores into probabilities, then decoding picks or samples the next token.</div>
+        <div class="pred-copy">The last vector is compared with learned vocabulary vectors. Decoding picks or samples one token.</div>
       </div>
     </div>
 
     <div class="two-col">
       <div class="callout">
         <div class="callout-title">So is it nearest neighbor?</div>
-        <p>No. Attention dot products compare query and key vectors so the model can decide which earlier tokens matter. The final vocabulary scores are also comparisons similar to dot products with learned output vectors. But the model does not run a geometric nearest neighbor search over the plotted RoPE points.</p>
+        <p>No. Attention uses dot products to decide which earlier tokens matter.</p>
+        <p>The final word comes from vocabulary scores and decoding, not a nearest point search.</p>
       </div>
       <div class="callout">
         <div class="callout-title">So is it smallest angle?</div>
-        <p>No. Angle is a useful picture because a dot product rewards vectors that point in similar directions. In real models, vector length matters too, and the learned matrices can reshape the space. RoPE changes the direction of query and key slices so those dot products include word order.</p>
+        <p>No. Angle is only part of the picture.</p>
+        <p>Vector length and learned weights matter too. A small angle is not the rule used to pick a word.</p>
       </div>
     </div>
 
     <div class="insight green">
-      <p><strong>Where RoPE fits:</strong> RoPE happens before the attention dot products. It changes the query and key vectors so attention scores depend on both meaning and relative position. The final word choice still comes from vocabulary probabilities after all transformer layers have finished processing the context.</p>
+      <p><strong>Where RoPE fits.</strong> RoPE happens before attention scores.</p>
+      <p>It helps attention use meaning and relative position. The final word still comes from vocabulary probabilities.</p>
     </div>
   </div>
 </section>
@@ -691,55 +642,43 @@ button.on{background:var(--green)}
 <!-- ═══════════════ SECTION 6: FREQUENCIES ═══════════════ -->
 <section id="multifreq">
   <div class="container">
-    <div class="sec-label">Section 06: Multiple Scales</div>
-    <h2>Multiple Frequencies: A Ruler at Every Scale</h2>
+    <div class="sec-label">Section 06</div>
+    <h2>Multiple Frequencies Make a Ruler</h2>
 
     <div class="two-col">
       <div>
         <p>
-          So far we've talked about one dimension pair rotating at one speed.
-          But a real embedding has <em>d/2</em> pairs, and each one rotates at a
-          <em>different</em> speed, controlled by θᵢ:
+          A real embedding has many dimension pairs. Each pair rotates at a different speed.
         </p>
 
         <div class="math">
           θᵢ = 10000<sup>−2i/d</sup><br>
           <span class="ann">
-            i = 0 → θ ≈ 1.00  (fastest, completes a full rotation in ~6 positions)<br>
+            i = 0 → θ ≈ 1.00  (fast)<br>
             i = 1 → θ ≈ 0.18  (slower)<br>
             …<br>
-            last pair, i = d/2 − 1 → θ is near 0.0001 (slowest, barely rotates across thousands of positions)
+            last pair → θ is near 0.0001 (very slow)
           </span>
         </div>
 
         <div class="callout">
           <div class="callout-title">The Clock Analogy</div>
-          <p>Think of a digital clock: 12:34:56. The <strong>seconds</strong> digit ticks fast
-          and distinguishes nearby moments. The <strong>minutes</strong> digit is slower and
-          helps you know roughly when in the hour you are. The <strong>hours</strong> digit
-          is slowest and gives coarse structure.</p>
-          <p style="margin-top:.5rem">RoPE's dimension pairs work the same way.
-          Fast rotating pairs (low i) are like seconds. They can tell apart tokens
-          that are 1 or 2 positions away. Slow rotating pairs (high i) are like hours.
-          They distinguish tokens hundreds of positions apart.
-          Together, all d/2 pairs give the model a rich ruler across multiple scales.</p>
+          <p>A clock has fast and slow hands. The second hand changes quickly. The hour hand changes slowly.</p>
+          <p style="margin-top:.5rem">RoPE uses the same idea.</p>
+          <p>Fast pairs help with nearby tokens. Slow pairs help with longer distances.</p>
+          <p>Together they give the model a ruler with many scales.</p>
         </div>
 
         <div class="insight green">
-          <p><strong>Why this helps with long sequences.</strong> When a model is trained on
-          sequences of length 2048 and then given a sequence of length 4096, the fast rotating
-          pairs (which wrap around quickly) may be confused. The slow rotating pairs
-          are still meaningful. RoPE degrades gracefully, unlike learned PE which has
-          never seen those position IDs at all.</p>
+          <p><strong>Why this helps.</strong> Fast pairs can wrap around. Slow pairs change less,
+          so they still carry useful position information at longer distances.</p>
         </div>
       </div>
 
       <div>
-        <h3>Rotation Angle vs. Position</h3>
+        <h3>Unwrapped Rotation Angle</h3>
         <p style="font-size:.82rem;margin-bottom:.6rem">
-          Each colored line shows how far pair <em>i</em> has rotated by position <em>m</em>.
-          Fast pairs (top) wrap around many times; slow pairs (bottom) barely move.
-          Drag the slider to zoom into shorter or longer sequences.
+          Each line shows cumulative rotation for one pair. Move the slider to change the range.
         </p>
         <div class="viz-wrap">
           <canvas id="freq-canvas"></canvas>
@@ -760,10 +699,8 @@ button.on{background:var(--green)}
 
     <h3>Every Dimension Pair at a Single Position</h3>
     <p>
-      Drag the slider to pick a token position. Each clock shows how far one dimension pair
-      has rotated at that position. Because all 8 clocks show different angles, the
-      combination of all of them gives the position a distinctive signature, just like reading
-      hours, minutes, and seconds together tells you the exact time.
+      Drag the slider to pick a token position.
+      Each clock shows one dimension pair. The set of angles gives the position a useful signature.
     </p>
 
     <div class="viz-wrap" style="margin-top:.75rem">
@@ -777,7 +714,7 @@ button.on{background:var(--green)}
           <input type="range" id="clocks-pos" min="0" max="32" value="5">
         </div>
         <span style="font-size:.79rem;color:var(--muted)">
-          Notice how every pair shows a different angle. Together they give this position a richer signature than any single pair could.
+          Each pair gives a different angle. Together they carry more information than one pair alone.
         </span>
       </div>
     </div>
@@ -787,9 +724,9 @@ button.on{background:var(--green)}
 <!-- ═══════════════ SECTION 7: COMPARISON ═══════════════ -->
 <section id="compare">
   <div class="container">
-    <div class="sec-label">Section 07: Summary</div>
-    <h2>RoPE vs. Sinusoidal PE: Side by Side</h2>
-    <p>Both methods solve the same core problem. Here's how they differ in practice:</p>
+    <div class="sec-label">Section 07</div>
+    <h2>RoPE and Sinusoidal PE</h2>
+    <p>Both methods add position information. They do it in different places.</p>
 
     <table class="cmp">
       <thead>
@@ -808,7 +745,7 @@ button.on{background:var(--green)}
         <tr>
           <td>What the model learns</td>
           <td>Must learn how to use the added absolute position signal</td>
-          <td>Relative distance is baked into dot products algebraically, with nothing extra to learn</td>
+          <td>The relative distance term appears in dot products by formula</td>
         </tr>
         <tr>
           <td>Relative positions</td>
@@ -823,35 +760,31 @@ button.on{background:var(--green)}
         <tr>
           <td>Longer sequences than training</td>
           <td><span class="so">⚠</span> Fixed waves can extend, but behavior beyond training can still degrade</td>
-          <td><span class="ok">✓</span> Slow frequency pairs remain informative</td>
+          <td><span class="so">⚠</span> The formula extends, but very long context often needs scaling or fine tuning</td>
         </tr>
         <tr>
           <td>Extra learned parameters</td>
-          <td>None (or many, in the "learned PE" variant)</td>
+          <td>None, or many in learned PE variants</td>
           <td><span class="ok">✓</span> None, because the formula is fixed</td>
         </tr>
         <tr>
           <td>Used in</td>
           <td>Original Transformer, BERT, early GPT models</td>
-          <td>LLaMA 2 & 3, Mistral, Falcon, Gemma, PaLM 2, and essentially all modern LLMs</td>
+          <td>LLaMA 2 and 3, Mistral, Falcon, Gemma, PaLM 2, and many modern LLMs</td>
         </tr>
       </tbody>
     </table>
 
     <div class="insight green" style="margin-top:2rem">
-      <p><strong>The big picture:</strong> RoPE's genius is that it encodes position in a way
-      that's <em>invisible to the model's weights</em> but <em>perfectly legible</em> to the
-      attention mechanism. Every time two tokens compare their queries and keys, the relative
-      distance between them is already there, encoded in the rotation angle with no extra learning required.
-      That's why it has become the standard in virtually every transformer built since 2022.</p>
+      <p><strong>The big picture.</strong> RoPE encodes position in a way attention can use directly.</p>
+      <p>When two tokens compare query and key vectors, their relative distance is already part of the score.</p>
     </div>
   </div>
 </section>
 
 <footer style="padding:2rem 0;border-top:1px solid var(--border);text-align:center">
   <p style="font-size:.79rem;color:var(--muted)">
-    RoPE introduced by Su et al., "RoFormer: Enhanced Transformer with Rotary Position Embedding" (2021) ·
-    Interactive demo for CS 4740
+    RoPE introduced by Su et al., RoFormer, 2021.
   </p>
 </footer>
 
@@ -957,6 +890,7 @@ function setupCanvas(canvas, logicalH){
 // ─── HERO: animated rotating vectors ────────────────────────────────────────
 (function(){
   const canvas = $('hero-canvas');
+  if(!canvas || getComputedStyle(canvas).display === 'none') return;
   let w, h, ctx;
   const vecs = Array.from({length:20}, ()=>({
     cx: Math.random(), cy: Math.random(),
@@ -1036,8 +970,10 @@ function setupCanvas(canvas, logicalH){
   function drawAttn(){
     const canvas = $('why-canvas');
     const n = words.length;
-    const { ctx, W, H } = setupCanvas(canvas, 115);
-    const cw = W/n, ch = H/n;
+    const { ctx, W, H } = setupCanvas(canvas, 145);
+    const L = 36, T = 24, B = 20, R = 8;
+    const gridW = W - L - R, gridH = H - T - B;
+    const cw = gridW/n, ch = gridH/n;
 
     for(let i=0;i<n;i++){
       const wi = order[i];
@@ -1046,24 +982,29 @@ function setupCanvas(canvas, logicalH){
       for(let j=0;j<n;j++){
         const v = .18 + weights[j]*2.8;
         ctx.fillStyle = `rgba(139,92,246,${clamp(v,.16,.95).toFixed(2)})`;
-        ctx.fillRect(j*cw, i*ch, cw, ch);
+        ctx.fillRect(L+j*cw, T+i*ch, cw, ch);
         ctx.strokeStyle = 'rgba(255,255,255,.06)';
-        ctx.strokeRect(j*cw, i*ch, cw, ch);
+        ctx.strokeRect(L+j*cw, T+i*ch, cw, ch);
       }
     }
 
     // Row/col labels
-    ctx.font = `bold ${Math.min(11, Math.floor(cw*.45))}px system-ui`;
+    ctx.font = `bold ${Math.min(11, Math.floor(cw*.36))}px system-ui`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     order.forEach((wi,j)=>{
-      ctx.fillStyle = 'rgba(255,255,255,.6)';
-      ctx.fillText(words[wi].slice(0,3), (j+.5)*cw, ch*.5);
+      ctx.fillStyle = 'rgba(255,255,255,.58)';
+      ctx.fillText(words[wi].slice(0,3), L+(j+.5)*cw, T*.52);
     });
     order.forEach((wi,i)=>{
-      if(i===0) return;
-      ctx.fillStyle = 'rgba(255,255,255,.4)';
-      ctx.fillText(words[wi].slice(0,3), cw*.35, (i+.5)*ch);
+      ctx.fillStyle = 'rgba(255,255,255,.46)';
+      ctx.textAlign = 'right';
+      ctx.fillText(words[wi].slice(0,3), L-6, T+(i+.5)*ch);
     });
+
+    ctx.fillStyle='rgba(255,255,255,.35)';
+    ctx.font='9px system-ui';
+    ctx.textAlign='right';
+    ctx.fillText('toy content scores without position', W-6, H-8);
   }
 
   $('shuffle-btn').addEventListener('click', ()=>{
@@ -1113,14 +1054,13 @@ function setupCanvas(canvas, logicalH){
 
     for(let r=0;r<ROWS;r++){
       for(let c=0;c<COLS;c++){
-        const t=(data[r][c]+1)/2; // map -1..1 to 0..1
         let R,G,B;
-        if(t<.5){
-          const s=t*2;
-          R=Math.round(lerp(18,139,s));G=Math.round(lerp(8,92,s));B=Math.round(lerp(55,246,s));
+        const v = data[r][c];
+        const mag = Math.abs(v);
+        if(v<0){
+          R=Math.round(lerp(33,139,mag));G=Math.round(lerp(38,92,mag));B=Math.round(lerp(45,246,mag));
         } else {
-          const s=(t-.5)*2;
-          R=Math.round(lerp(139,6,s));G=Math.round(lerp(92,182,s));B=Math.round(lerp(246,212,s));
+          R=Math.round(lerp(33,6,mag));G=Math.round(lerp(38,182,mag));B=Math.round(lerp(45,212,mag));
         }
         const focus = Math.exp(-Math.pow(r-highlightRow,2)/1.2);
         const alpha = .42 + focus*.58;
@@ -1232,12 +1172,13 @@ function setupCanvas(canvas, logicalH){
     ctx.fillText(rotatedLabel, rotatedX, ry-5);
 
     // Info box top-left
+    const shownM = Math.abs(m-targetM)<0.02 ? String(targetM) : m.toFixed(1);
     ctx.fillStyle='#e6edf3'; ctx.font=(W<360?'bold 10px system-ui':'bold 12px system-ui'); ctx.textAlign='left';
-    ctx.fillText(W<360?'start: m=0 means no rotation':'start: x at position 0 receives no rotation', 10, 20);
+    ctx.fillText(W<360?'start m=0 means no rotation':'start x at position 0 receives no rotation', 10, 20);
     ctx.fillStyle='#8b949e'; ctx.font=(W<360?'9px system-ui':'10px system-ui');
-    ctx.fillText('current token position m = '+targetM, 10, 36);
+    ctx.fillText('shown position m = '+shownM, 10, 36);
     ctx.fillText('θᵢ = 10000^(−'+(2*pairI)+'/d) = '+th.toFixed(4), 10, 50);
-    ctx.fillText('angle = '+targetM+' × '+th.toFixed(4)+' = '+(targetM*th).toFixed(3)+' rad', 10, 64);
+    ctx.fillText('shown angle = '+(m*th).toFixed(3)+' rad', 10, 64);
 
     // Origin
     ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(cx,cy,3.5,0,TAU); ctx.fill();
@@ -1322,7 +1263,7 @@ function setupCanvas(canvas, logicalH){
       ctx.fillStyle=col; ctx.font='bold 11px system-ui'; ctx.textAlign='center';
       ctx.fillText(label+' (pos '+shownPos+')', cx, cy-R-18);
       ctx.fillStyle='rgba(255,255,255,.42)'; ctx.font='9px system-ui';
-      ctx.fillText('rotated '+(shownPos*th).toFixed(2)+'rad', cx, cy-R-6);
+      ctx.fillText('shown '+(visualPos*th).toFixed(2)+'rad', cx, cy-R-6);
 
       // Origin
       ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(cx,cy,3,0,TAU); ctx.fill();
@@ -1355,10 +1296,12 @@ function setupCanvas(canvas, logicalH){
     ctx.fillText(d.toFixed(3), barX, by-12);
     ctx.fillStyle='rgba(255,255,255,.45)'; ctx.font='9px system-ui';
     ctx.fillText('q̃ · k̃', barX, by-26);
-    ctx.fillText('gap='+(m-n), barX, barY+barH/2+14);
+    const shownGap = visualM - visualN;
+    const gapText = Math.abs(shownGap - Math.round(shownGap))<0.02 ? String(Math.round(shownGap)) : shownGap.toFixed(1);
+    ctx.fillText('shown gap='+gapText, barX, barY+barH/2+14);
 
     ctx.fillStyle='#22c55e'; ctx.font='bold 9px system-ui';
-    ctx.fillText('= f(m−n)', barX, barY+barH/2+30);
+    ctx.fillText('= f(gap)', barX, barY+barH/2+30);
     if(locked){
       ctx.fillStyle='#f59e0b'; ctx.font='9px system-ui';
       ctx.fillText('🔒 locked', barX, barY+barH/2+46);
@@ -1417,7 +1360,7 @@ function setupCanvas(canvas, logicalH){
 // ─── SECTION 6a: Rotation angle line chart ──────────────────────────────────
 (function(){
   const PAIRS=8;
-  const COLORS=['#ef4444','#f59e0b','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#f97316'];
+  const COLORS=['#a78bfa','#8b5cf6','#7c3aed','#60a5fa','#38bdf8','#06b6d4','#94a3b8','#cbd5e1'];
   let maxPos=32;
 
   function draw(state){
@@ -1486,7 +1429,7 @@ function setupCanvas(canvas, logicalH){
 // ─── SECTION 6b: Clock faces ────────────────────────────────────────────────
 (function(){
   const PAIRS=8;
-  const COLORS=['#ef4444','#f59e0b','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#f97316'];
+  const COLORS=['#a78bfa','#8b5cf6','#7c3aed','#60a5fa','#38bdf8','#06b6d4','#94a3b8','#cbd5e1'];
   let pos=5;
 
   function draw(state){
@@ -1549,8 +1492,9 @@ function setupCanvas(canvas, logicalH){
       ctx.fillText(a2.toFixed(2)+'rad', cx, cy+R+25);
     }
 
+    const shownPos = Math.abs(visualPos-pos)<0.02 ? String(pos) : visualPos.toFixed(1);
     ctx.fillStyle='rgba(255,255,255,.35)'; ctx.font='10px system-ui'; ctx.textAlign='left';
-    ctx.fillText('position m = '+pos, 8, 14);
+    ctx.fillText('shown position m = '+shownPos, 8, 14);
   }
 
   const slider = smoothState({pos}, state=>draw(state), .24, .002);
