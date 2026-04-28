@@ -24,7 +24,8 @@
 html{min-height:100%}
 body{
   margin:0;
-  min-height:100%;
+  min-height:100vh;
+  overflow:hidden;
   background:
     radial-gradient(circle at 8% 4%, rgba(23,190,187,.12), transparent 30rem),
     linear-gradient(180deg,#101218 0%,#0f1115 52%,#12151a 100%);
@@ -60,14 +61,19 @@ select{
 .app{
   width:min(1280px,calc(100vw - 32px));
   margin:0 auto;
-  padding:20px 0 30px;
+  height:100vh;
+  padding:12px 0;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
 }
 .topbar{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:1rem;
-  padding:8px 0 16px;
+  padding:4px 0 10px;
+  flex:0 0 auto;
 }
 .brand{
   display:flex;
@@ -105,6 +111,8 @@ select{
   grid-template-columns:188px minmax(0,1fr);
   gap:16px;
   align-items:start;
+  flex:1 1 auto;
+  min-height:0;
 }
 .steps-panel,.tool-panel{
   background:rgba(23,26,33,.94);
@@ -112,7 +120,7 @@ select{
   border-radius:10px;
   box-shadow:var(--shadow);
 }
-.steps-panel{padding:10px}
+.steps-panel{padding:10px;height:100%;overflow:auto}
 .steps{
   display:flex;
   flex-direction:column;
@@ -148,7 +156,8 @@ select{
 }
 .step-tab.active .num{background:var(--teal);color:#061113}
 .tool-panel{
-  min-height:760px;
+  min-height:0;
+  height:100%;
   display:flex;
   flex-direction:column;
   overflow:hidden;
@@ -160,6 +169,7 @@ select{
   gap:.75rem;
   padding:12px 15px;
   border-bottom:1px solid var(--line);
+  flex:0 0 auto;
 }
 .canvas-label{
   color:var(--ink);
@@ -174,20 +184,21 @@ select{
 }
 #viz{
   width:100%;
-  min-height:590px;
+  min-height:0;
   display:block;
   flex:1 1 auto;
   background:#12161d;
 }
 .controls{
-  min-height:118px;
-  padding:13px 15px;
+  min-height:96px;
+  padding:10px 12px;
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:.75rem;
   align-items:end;
   border-top:1px solid var(--line);
   background:rgba(32,36,45,.7);
+  flex:0 0 auto;
 }
 .control{
   display:grid;
@@ -310,12 +321,12 @@ code{
   font-size:.88em;
 }
 @media(max-width:940px){
-  .layout{grid-template-columns:1fr}
-  .steps-panel{box-shadow:none}
+  .layout{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+  .steps-panel{box-shadow:none;height:auto;overflow:auto}
   .steps{display:grid;grid-template-columns:repeat(5,minmax(118px,1fr));overflow:auto;padding-bottom:4px}
   .step-tab{min-width:138px}
-  .tool-panel{min-height:700px}
-  #viz{min-height:540px}
+  .tool-panel{min-height:0}
+  #viz{min-height:0}
 }
 @media(max-width:680px){
   .app{width:calc(100% - 20px);padding-top:12px}
@@ -323,8 +334,8 @@ code{
   .top-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
   .brand h1{font-size:1rem}
   .brand p{font-size:.8rem}
-  .tool-panel{min-height:690px}
-  #viz{min-height:500px}
+  .tool-panel{min-height:0}
+  #viz{min-height:0}
   .canvas-head{align-items:flex-start;flex-direction:column}
   .canvas-stat{text-align:left}
   .controls{grid-template-columns:1fr}
@@ -456,14 +467,14 @@ const steps = [
   {
     short:'Sentence',
     label:'Sentence to vectors',
-    stat:'Pick a token and see its toy embedding',
+    stat:'Token vector, not an attention score',
     title:'A sentence becomes token vectors',
-    lead:'The visual uses the sentence The cat chased the dog. Each token has a position and a small toy embedding. Real models use much larger vectors, but the flow is the same.',
-    formula:'token at position m -> embedding vector\nembedding -> query key value inside attention',
+    lead:'The visual uses the sentence The cat chased the dog. An embedding is the token written as a list of numbers. Attention scores are computed later from query and key vectors.',
+    formula:'token becomes embedding vector\nembedding makes query and key\nquery compared with key gives attention score',
     points:[
-      'The token keeps its word meaning in the embedding values.',
-      'The position is separate at first.',
-      'RoPE will use the position when query and key vectors are compared.'
+      'Each bar is one number in the token vector.',
+      'The bars are input values for attention.',
+      'They are not probabilities and not attention scores.'
     ]
   },
   {
@@ -648,18 +659,44 @@ function drawSentence(w,y,activeIndexes=[]){
 function drawVectorBars(values,x,y,w,h,color,label){
   drawSoftPanel(x,y,w,h);
   text(label,x+14,y+18,12,palette.text,'800');
+  text('one bar is one number',x+w-14,y+18,11,palette.muted,'650','right');
   const baseY = y + h * .56;
-  line(x+16,baseY,x+w-16,baseY,'rgba(255,255,255,.16)',1);
+  const leftPad = Math.min(92, Math.max(66, w * .12));
+  const rightPad = 22;
+  line(x+leftPad,baseY,x+w-rightPad,baseY,'rgba(255,255,255,.16)',1);
+  text('positive',x+18,baseY-14,10,palette.teal,'750');
+  text('negative',x+18,baseY+17,10,palette.coral,'750');
   const gap = 8;
-  const barW = (w - 44 - gap * (values.length - 1)) / values.length;
+  const barW = (w - leftPad - rightPad - gap * (values.length - 1)) / values.length;
   values.forEach((v,i)=>{
     const maxH = h * .34;
     const bh = Math.abs(v) * maxH;
-    const bx = x + 22 + i * (barW + gap);
+    const bx = x + leftPad + i * (barW + gap);
     const by = v >= 0 ? baseY - bh : baseY;
     ctx.fillStyle = v >= 0 ? color : palette.coral;
     roundRect(bx,by,barW,bh || 2,4,ctx.fillStyle,null);
     text(String(i),bx+barW/2,y+h-17,10,palette.soft,'700','center');
+  });
+}
+
+function drawFlow(x,y,w){
+  const labels = [
+    ['token','vector'],
+    ['query','key'],
+    ['attention','score']
+  ];
+  const boxW = Math.min(150,(w - 56) / 3);
+  const gap = (w - boxW * 3) / 2;
+  labels.forEach((label,i)=>{
+    const bx = x + i * (boxW + gap);
+    const active = i === 0;
+    roundRect(bx,y,boxW,42,8,active?'rgba(23,190,187,.14)':'rgba(255,255,255,.035)',active?palette.teal:'rgba(255,255,255,.12)');
+    const color = active ? palette.teal : palette.muted;
+    text(label[0],bx+boxW/2,y+16,11,color,'800','center');
+    text(label[1],bx+boxW/2,y+29,11,color,'800','center');
+    if(i < labels.length - 1){
+      arrow(bx+boxW+8,y+21,bx+boxW+gap-8,y+21,'rgba(255,255,255,.28)',1.4,7);
+    }
   });
 }
 
@@ -698,20 +735,22 @@ function cleanScore(value){
 
 function drawStep0(w,h){
   const tok = sentence[state.tokenIndex];
-  drawTitle(w,'The cat chased the dog','real sentence with toy vector values');
+  drawTitle(w,`${tok.word} as numbers`,'an embedding is the token vector before attention');
   drawSentence(w,86,[state.tokenIndex]);
 
   const panelW = Math.min(760,w-56);
   const panelX = (w - panelW) / 2;
-  drawVectorBars(tok.emb,panelX,188,panelW,170,palette.teal,`${tok.word} embedding`);
+  drawVectorBars(tok.emb,panelX,188,panelW,170,palette.teal,`${tok.word} embedding vector`);
+  drawFlow(panelX,374,panelW);
 
   const cardW = Math.min(520,w-56);
   const cardX = (w - cardW) / 2;
-  const cardY = Math.min(398,h-132);
-  drawSoftPanel(cardX,cardY,cardW,104);
-  text(tok.word,cardX+24,cardY+30,22,palette.text,'850');
-  text(`position ${tok.pos}`,cardX+24,cardY+61,15,palette.amber,'800');
-  wrappedText('these numbers hold token meaning for this toy example',cardX+24,cardY+86,cardW-48,17,12,palette.muted,'650');
+  const cardY = Math.min(436,h-132);
+  drawSoftPanel(cardX,cardY,cardW,112);
+  text('What this means',cardX+24,cardY+28,18,palette.amber,'850');
+  const copyY = cardY + 58;
+  const copyH = wrappedText('This is the token embedding vector. Each bar is one dimension.',cardX+24,copyY,cardW-48,17,12,palette.muted,'650');
+  wrappedText('Height shows size. Color shows positive or negative.',cardX+24,copyY+copyH+4,cardW-48,17,12,palette.muted,'650');
 }
 
 function drawStep1(w,h){
