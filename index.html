@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RoPE Step-by-Step Visualizer</title>
+<title>RoPE Visual Stepper</title>
 <style>
 *{box-sizing:border-box}
 :root{
@@ -27,68 +27,47 @@ body{
   min-height:100%;
   background:
     radial-gradient(circle at 8% 4%, rgba(23,190,187,.12), transparent 30rem),
-    linear-gradient(180deg,#101218 0%,#0f1115 44%,#12151a 100%);
+    linear-gradient(180deg,#101218 0%,#0f1115 52%,#12151a 100%);
   color:var(--ink);
   font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-size:16px;
-  line-height:1.55;
+  line-height:1.45;
 }
-button,input{font:inherit}
+button,input,select{font:inherit}
 button{
   border:0;
   border-radius:7px;
   min-height:40px;
-  padding:.55rem .85rem;
+  padding:.55rem .9rem;
   background:var(--teal);
   color:#061113;
-  font-weight:750;
+  font-weight:780;
   cursor:pointer;
 }
 button:hover{filter:brightness(1.08)}
 button:disabled{opacity:.45;cursor:not-allowed;filter:none}
-button:focus-visible,input:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
 button.secondary{background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
 button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-button.step-tab{
-  display:flex;
-  align-items:center;
-  gap:.65rem;
-  width:100%;
-  min-height:48px;
-  justify-content:flex-start;
-  background:transparent;
-  color:var(--muted);
+select{
+  min-height:40px;
   border:1px solid var(--line);
-  padding:.55rem .65rem;
-}
-button.step-tab.active{
-  background:rgba(23,190,187,.12);
-  border-color:rgba(23,190,187,.65);
-  color:var(--ink);
-}
-.num{
-  display:inline-grid;
-  place-items:center;
-  width:26px;
-  height:26px;
-  border-radius:50%;
+  border-radius:7px;
   background:var(--panel-2);
-  color:var(--muted);
-  font-size:.82rem;
-  flex:0 0 auto;
+  color:var(--ink);
+  padding:.48rem .7rem;
 }
-.step-tab.active .num{background:var(--teal);color:#061113}
 .app{
-  width:min(1180px,calc(100vw - 32px));
+  width:min(1280px,calc(100vw - 32px));
   margin:0 auto;
-  padding:24px 0 34px;
+  padding:20px 0 30px;
 }
 .topbar{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:1rem;
-  padding:10px 0 18px;
+  padding:8px 0 16px;
 }
 .brand{
   display:flex;
@@ -102,43 +81,74 @@ button.step-tab.active{
   border-radius:9px;
   background:conic-gradient(from 45deg,var(--teal),var(--amber),var(--coral),var(--teal));
   box-shadow:0 0 0 1px rgba(255,255,255,.1) inset;
+  flex:0 0 auto;
 }
 .brand h1{
   margin:0;
-  font-size:1.1rem;
-  line-height:1.15;
+  font-size:1.08rem;
+  line-height:1.1;
   letter-spacing:0;
 }
 .brand p{
   margin:.12rem 0 0;
   color:var(--muted);
-  font-size:.88rem;
+  font-size:.86rem;
+}
+.top-actions{
+  display:flex;
+  gap:.6rem;
+  flex-wrap:wrap;
+  justify-content:flex-end;
 }
 .layout{
   display:grid;
-  grid-template-columns:260px minmax(0,1fr);
-  gap:18px;
+  grid-template-columns:188px minmax(0,1fr);
+  gap:16px;
+  align-items:start;
 }
+.steps-panel,.tool-panel{
+  background:rgba(23,26,33,.94);
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+}
+.steps-panel{padding:10px}
 .steps{
   display:flex;
   flex-direction:column;
   gap:.5rem;
 }
-.stage{
-  display:grid;
-  grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);
-  gap:18px;
-  align-items:stretch;
-}
-.tool-panel,.explain-panel,.steps-panel{
-  background:rgba(23,26,33,.92);
+.step-tab{
+  display:flex;
+  align-items:center;
+  gap:.58rem;
+  width:100%;
+  min-height:46px;
+  justify-content:flex-start;
+  background:transparent;
+  color:var(--muted);
   border:1px solid var(--line);
-  border-radius:10px;
-  box-shadow:var(--shadow);
+  padding:.5rem .58rem;
 }
-.steps-panel{padding:12px}
+.step-tab.active{
+  background:rgba(23,190,187,.13);
+  border-color:rgba(23,190,187,.68);
+  color:var(--ink);
+}
+.num{
+  display:inline-grid;
+  place-items:center;
+  width:25px;
+  height:25px;
+  border-radius:50%;
+  background:var(--panel-2);
+  color:var(--muted);
+  font-size:.8rem;
+  flex:0 0 auto;
+}
+.step-tab.active .num{background:var(--teal);color:#061113}
 .tool-panel{
-  min-height:620px;
+  min-height:760px;
   display:flex;
   flex-direction:column;
   overflow:hidden;
@@ -148,80 +158,107 @@ button.step-tab.active{
   align-items:center;
   justify-content:space-between;
   gap:.75rem;
-  padding:14px 16px;
+  padding:12px 15px;
   border-bottom:1px solid var(--line);
 }
 .canvas-label{
-  color:var(--muted);
-  font-size:.86rem;
+  color:var(--ink);
+  font-size:.95rem;
+  font-weight:820;
 }
 .canvas-stat{
   color:var(--amber);
-  font-size:.86rem;
-  font-weight:750;
+  font-size:.84rem;
+  font-weight:760;
   text-align:right;
 }
 #viz{
   width:100%;
-  min-height:430px;
+  min-height:590px;
   display:block;
   flex:1 1 auto;
   background:#12161d;
 }
 .controls{
-  min-height:116px;
-  padding:14px 16px;
+  min-height:118px;
+  padding:13px 15px;
   display:grid;
-  gap:.8rem;
-  border-top:1px solid var(--line);
-  background:rgba(32,36,45,.68);
-}
-.control-row{
-  display:grid;
-  grid-template-columns:1fr auto;
+  grid-template-columns:repeat(4,minmax(0,1fr));
   gap:.75rem;
-  align-items:center;
+  align-items:end;
+  border-top:1px solid var(--line);
+  background:rgba(32,36,45,.7);
 }
-.slider-block{
+.control{
   display:grid;
-  gap:.35rem;
+  gap:.32rem;
 }
-.slider-label{
+.control label{
   display:flex;
   justify-content:space-between;
-  gap:.75rem;
+  gap:.6rem;
   color:var(--muted);
-  font-size:.86rem;
+  font-size:.82rem;
 }
-.slider-label strong{color:var(--ink);font-weight:750}
+.control strong{color:var(--ink)}
 input[type=range]{
   width:100%;
   accent-color:var(--teal);
 }
-.explain-panel{
-  padding:22px;
+.button-row{
+  display:flex;
+  gap:.55rem;
+  align-items:end;
+  flex-wrap:wrap;
+}
+.button-row button{flex:1 1 auto}
+.drawer-backdrop,.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(4,6,10,.68);
+  display:none;
+  z-index:20;
+}
+.drawer-backdrop.open,.modal-backdrop.open{display:block}
+.drawer{
+  position:absolute;
+  top:0;
+  right:0;
+  width:min(430px,100%);
+  height:100%;
+  background:#171a21;
+  border-left:1px solid var(--line);
+  box-shadow:-24px 0 80px rgba(0,0,0,.42);
   display:flex;
   flex-direction:column;
 }
-.eyebrow{
-  margin:0 0 .45rem;
-  color:var(--teal);
-  text-transform:uppercase;
-  font-size:.76rem;
-  font-weight:800;
-  letter-spacing:.08em;
+.drawer-head,.modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding:17px 19px;
+  border-bottom:1px solid var(--line);
 }
-#step-title{
+.drawer-head h2,.modal-head h2{
   margin:0;
-  font-size:2rem;
-  line-height:1.08;
+  font-size:1.12rem;
   letter-spacing:0;
 }
-#step-lead{
-  color:var(--muted);
-  margin:1rem 0;
-  font-size:1rem;
+.drawer-body,.modal-body{
+  padding:18px 20px 22px;
+  overflow:auto;
 }
+.drawer-body p,.modal-body p{
+  margin:.4rem 0 1rem;
+  color:var(--muted);
+}
+.drawer-body ul{
+  margin:0 0 1rem;
+  padding-left:1.1rem;
+  color:var(--muted);
+}
+.drawer-body li{margin:.45rem 0}
 .formula{
   border:1px solid rgba(242,165,65,.38);
   background:rgba(242,165,65,.08);
@@ -229,52 +266,15 @@ input[type=range]{
   border-radius:8px;
   padding:.8rem .9rem;
   font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
-  font-size:.9rem;
+  font-size:.88rem;
   line-height:1.6;
-  margin:.3rem 0 1rem;
-}
-.points{
-  display:grid;
-  gap:.75rem;
-  padding:0;
-  margin:.2rem 0 1.2rem;
-  list-style:none;
-}
-.points li{
-  display:grid;
-  grid-template-columns:22px 1fr;
-  gap:.65rem;
-  color:var(--muted);
-}
-.points li::before{
-  content:"";
-  width:9px;
-  height:9px;
-  margin-top:.55rem;
-  border-radius:50%;
-  background:var(--green);
-  box-shadow:0 0 0 4px rgba(108,192,112,.12);
-}
-.panel-actions{
-  margin-top:auto;
-  display:flex;
-  gap:.65rem;
-  flex-wrap:wrap;
-}
-.mini-note{
-  color:var(--soft);
-  font-size:.84rem;
-  margin:.7rem 0 0;
+  margin:0 0 1rem;
+  white-space:pre-wrap;
 }
 .modal-backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(4,6,10,.72);
-  display:none;
   align-items:center;
   justify-content:center;
   padding:22px;
-  z-index:20;
 }
 .modal-backdrop.open{display:flex}
 .modal{
@@ -286,20 +286,6 @@ input[type=range]{
   border-radius:12px;
   box-shadow:0 28px 90px rgba(0,0,0,.52);
 }
-.modal-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:1rem;
-  padding:18px 20px;
-  border-bottom:1px solid var(--line);
-}
-.modal-head h2{
-  margin:0;
-  font-size:1.25rem;
-  letter-spacing:0;
-}
-.modal-body{padding:18px 20px 22px}
 .compare-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -314,8 +300,6 @@ input[type=range]{
 }
 .compare-box h3{margin:0 0 .55rem;font-size:1rem}
 .compare-box p{margin:.45rem 0;color:var(--muted)}
-.modal-body p{color:var(--muted)}
-.modal-body strong{color:var(--ink)}
 code{
   color:#ffe3b2;
   background:rgba(242,165,65,.09);
@@ -325,29 +309,27 @@ code{
   font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
   font-size:.88em;
 }
-@media(max-width:980px){
+@media(max-width:940px){
   .layout{grid-template-columns:1fr}
   .steps-panel{box-shadow:none}
-  .steps{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));overflow:auto;padding-bottom:4px}
-  button.step-tab{min-width:150px}
-  .stage{grid-template-columns:1fr}
-  .tool-panel{min-height:560px}
+  .steps{display:grid;grid-template-columns:repeat(5,minmax(118px,1fr));overflow:auto;padding-bottom:4px}
+  .step-tab{min-width:138px}
+  .tool-panel{min-height:700px}
+  #viz{min-height:540px}
 }
-@media(max-width:620px){
-  .app{width:calc(100% - 20px);max-width:1180px;padding-top:12px}
+@media(max-width:680px){
+  .app{width:calc(100% - 20px);padding-top:12px}
   .topbar{align-items:flex-start;flex-direction:column}
-  .topbar button{width:100%}
+  .top-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
   .brand h1{font-size:1rem}
-  .brand p{font-size:.82rem}
-  .tool-panel{min-height:520px}
-  #viz{min-height:430px}
+  .brand p{font-size:.8rem}
+  .tool-panel{min-height:690px}
+  #viz{min-height:500px}
   .canvas-head{align-items:flex-start;flex-direction:column}
-  #step-title{font-size:1.55rem}
-  .explain-panel{padding:18px}
-  .control-row{grid-template-columns:1fr}
-  .control-row button{width:100%}
+  .canvas-stat{text-align:left}
+  .controls{grid-template-columns:1fr}
+  .button-row{display:grid;grid-template-columns:1fr 1fr}
   .compare-grid{grid-template-columns:1fr}
-  .panel-actions button{flex:1 1 120px}
 }
 </style>
 </head>
@@ -357,11 +339,14 @@ code{
     <div class="brand">
       <div class="brand-mark" aria-hidden="true"></div>
       <div>
-        <h1>RoPE Step-by-Step Visualizer</h1>
-        <p>See how rotary position embeddings put token order into attention.</p>
+        <h1>RoPE Visual Stepper</h1>
+        <p>A sentence becomes vectors, then position becomes rotation.</p>
       </div>
     </div>
-    <button id="open-compare">Why RoPE fixes earlier PE</button>
+    <div class="top-actions">
+      <button class="secondary" id="open-explain">Explanation</button>
+      <button id="open-compare">Compare PE</button>
+    </div>
   </header>
 
   <div class="layout">
@@ -369,61 +354,58 @@ code{
       <div class="steps" id="step-tabs"></div>
     </aside>
 
-    <section class="stage" aria-live="polite">
-      <div class="tool-panel">
-        <div class="canvas-head">
-          <div class="canvas-label" id="canvas-label">Step 1 visual</div>
-          <div class="canvas-stat" id="canvas-stat">Content scores ignore order</div>
-        </div>
-        <canvas id="viz"></canvas>
-        <div class="controls" id="controls"></div>
+    <section class="tool-panel" aria-live="polite">
+      <div class="canvas-head">
+        <div class="canvas-label" id="canvas-label">Sentence to vectors</div>
+        <div class="canvas-stat" id="canvas-stat">The dog token is position four</div>
       </div>
-
-      <article class="explain-panel">
-        <p class="eyebrow" id="step-count">Step 1 of 5</p>
-        <h2 id="step-title"></h2>
-        <p id="step-lead"></p>
-        <div class="formula" id="step-formula"></div>
-        <ul class="points" id="step-points"></ul>
-        <div class="panel-actions">
-          <button class="secondary" id="prev-step">Previous</button>
-          <button id="next-step">Next</button>
-        </div>
-        <p class="mini-note">The diagrams use small toy vectors. The formulas match the RoPE operation used on each query and key dimension pair.</p>
-      </article>
+      <canvas id="viz"></canvas>
+      <div class="controls" id="controls"></div>
     </section>
   </div>
 </main>
 
+<div class="drawer-backdrop" id="explain-backdrop">
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="explain-title">
+    <div class="drawer-head">
+      <h2 id="explain-title">Explanation</h2>
+      <button class="ghost" id="close-explain">Close</button>
+    </div>
+    <div class="drawer-body">
+      <h3 id="drawer-step-title"></h3>
+      <p id="drawer-lead"></p>
+      <div class="formula" id="drawer-formula"></div>
+      <ul id="drawer-points"></ul>
+    </div>
+  </aside>
+</div>
+
 <div class="modal-backdrop" id="compare-modal" role="dialog" aria-modal="true" aria-labelledby="compare-title">
   <div class="modal">
     <div class="modal-head">
-      <h2 id="compare-title">How RoPE improves on earlier positional encoding</h2>
+      <h2 id="compare-title">RoPE and earlier positional encoding</h2>
       <button class="ghost" id="close-compare">Close</button>
     </div>
     <div class="modal-body">
       <p>
-        Earlier absolute position methods give each token a position tag. That works, but attention still has to learn how those absolute tags imply the distance between two tokens.
-      </p>
-      <p>
-        Fixed sinusoidal PE already has useful wave structure. RoPE keeps that sinusoidal idea, but moves it into query and key rotation so the relative gap appears directly during the dot product.
+        Earlier absolute position methods attach a position signal to each token before attention. Fixed sinusoidal PE is useful because it gives every position a wave pattern.
       </p>
       <div class="compare-grid">
         <div class="compare-box">
-          <h3>Absolute PE</h3>
-          <p>Position is added to the token vector before attention.</p>
+          <h3>Sinusoidal PE</h3>
+          <p>Position is added to the token vector.</p>
           <p><code>x = token + PE(position)</code></p>
-          <p>Basic attention then compares mixed content and absolute-position vectors.</p>
+          <p>Attention still has to learn how those absolute tags imply distance.</p>
         </div>
         <div class="compare-box">
           <h3>RoPE</h3>
-          <p>Position rotates each query and key pair inside attention.</p>
+          <p>Position rotates query and key pairs.</p>
           <p><code>q' dot k' = f(q, k, m - n)</code></p>
-          <p>The relative gap appears directly in the score.</p>
+          <p>The relative gap appears directly in the attention score.</p>
         </div>
       </div>
       <p>
-        RoPE also preserves vector length because rotation does not stretch the vector, and the standard RoPE formula adds no learned parameters. It is not unlimited-context magic: very long contexts still often need scaling, training, or fine tuning.
+        RoPE preserves vector length because rotation does not stretch the vector. Standard RoPE also adds no learned parameters. Very long context still needs care, so RoPE is not unlimited context by itself.
       </p>
     </div>
   </div>
@@ -435,97 +417,105 @@ const canvas = $('viz');
 const ctx = canvas.getContext('2d');
 const DPR = () => window.devicePixelRatio || 1;
 const TAU = Math.PI * 2;
-const PAIRS = 6;
+const PAIRS = 3;
 const DIM = PAIRS * 2;
 
+const sentence = [
+  {word:'The', pos:0, emb:[0.12,0.44,-0.18,0.31,0.20,-0.12], q:[0.18,0.33,-0.22,0.44,0.12,-0.18], k:[0.21,0.29,-0.17,0.39,0.16,-0.12]},
+  {word:'cat', pos:1, emb:[0.74,0.18,0.36,-0.22,0.64,0.10], q:[0.82,0.40,0.32,-0.28,0.58,0.12], k:[0.76,0.30,0.41,-0.18,0.60,0.09]},
+  {word:'chased', pos:2, emb:[0.22,0.70,-0.62,0.38,0.14,0.50], q:[0.28,0.74,-0.58,0.42,0.18,0.48], k:[0.31,0.64,-0.52,0.36,0.20,0.44]},
+  {word:'the', pos:3, emb:[0.10,0.42,-0.15,0.29,0.22,-0.10], q:[0.16,0.31,-0.18,0.40,0.16,-0.16], k:[0.20,0.26,-0.14,0.35,0.18,-0.10]},
+  {word:'dog', pos:4, emb:[0.70,0.22,0.30,-0.26,0.68,0.16], q:[0.78,0.36,0.28,-0.32,0.62,0.18], k:[0.72,0.34,0.38,-0.22,0.64,0.13]}
+];
+
 const state = {
-  step: 0,
-  swapped: false,
-  position: 5,
-  pair: 1,
-  m: 3,
-  n: 8,
-  multiPosition: 18
+  step:0,
+  tokenIndex:4,
+  pair:0,
+  queryIndex:4,
+  keyIndex:1,
+  position:4
 };
 
 const palette = {
-  bg: '#12161d',
-  panel: '#171a21',
-  line: '#303744',
-  text: '#f4f7fb',
-  muted: '#aab4c2',
-  soft: '#778397',
-  teal: '#17bebb',
-  amber: '#f2a541',
-  coral: '#ff6b6b',
-  green: '#6cc070',
-  violet: '#9a8cff'
+  bg:'#12161d',
+  panel:'#171a21',
+  tile:'#20242d',
+  line:'#303744',
+  text:'#f4f7fb',
+  muted:'#aab4c2',
+  soft:'#778397',
+  teal:'#17bebb',
+  amber:'#f2a541',
+  coral:'#ff6b6b',
+  green:'#6cc070',
+  violet:'#9a8cff'
 };
 
 const steps = [
   {
-    short: 'Need order',
-    title: 'Attention needs a position signal',
-    label: 'Content-only attention',
-    stat: 'Scores move with words, not positions',
-    lead: 'Self-attention compares token content. Without position information, the same words in a new order keep the same content-based comparisons.',
-    formula: 'attention score = query dot key\nNo position term means no built-in first, second, or third.',
-    points: [
-      'A transformer processes tokens in parallel, so order is not automatic.',
-      'A position encoding adds the missing order signal.',
-      'RoPE is one way to add that signal directly where attention scores are computed.'
+    short:'Sentence',
+    label:'Sentence to vectors',
+    stat:'Pick a token and see its toy embedding',
+    title:'A sentence becomes token vectors',
+    lead:'The visual uses the sentence The cat chased the dog. Each token has a position and a small toy embedding. Real models use much larger vectors, but the flow is the same.',
+    formula:'token at position m -> embedding vector\nembedding -> query key value inside attention',
+    points:[
+      'The token keeps its word meaning in the embedding values.',
+      'The position is separate at first.',
+      'RoPE will use the position when query and key vectors are compared.'
     ]
   },
   {
-    short: 'Make pairs',
-    title: 'RoPE groups vector dimensions into 2D pairs',
-    label: 'Embedding pairs',
-    stat: 'Each pair is a tiny 2D plane',
-    lead: 'RoPE treats dimensions 0 and 1 as one plane, dimensions 2 and 3 as another, and so on. A rotation needs two numbers, so the vector is handled pair by pair.',
-    formula: 'x = [x0, x1, x2, x3, ...]\npair 0 = (x0, x1)\npair 1 = (x2, x3)',
-    points: [
-      'The original token vector is not replaced.',
-      'Each query and key vector is split into small 2D slices.',
-      'Every slice gets a rotation angle based on token position.'
+    short:'Pairs',
+    label:'Query vector pairs',
+    stat:'RoPE rotates two numbers at a time',
+    title:'RoPE needs 2D pairs',
+    lead:'Inside attention, the embedding is projected into query and key vectors. RoPE groups adjacent query and key dimensions into pairs because a rotation needs a 2D plane.',
+    formula:'q = [q0, q1, q2, q3, q4, q5]\npair 0 = (q0, q1)\npair 1 = (q2, q3)\npair 2 = (q4, q5)',
+    points:[
+      'The example shows one toy query vector from the selected token.',
+      'The same pairing is applied to keys.',
+      'Each pair rotates at its own speed.'
     ]
   },
   {
-    short: 'Rotate',
-    title: 'Position becomes a rotation angle',
-    label: 'Rotating one query or key pair',
-    stat: 'Angle = position * theta_i',
-    lead: 'For token position m, RoPE rotates each 2D pair by m times that pair\'s frequency. Position 0 rotates by 0, so the first token is unchanged.',
-    formula: 'theta_i = 10000^(-2i / d)\nangle = m * theta_i\n[x0\', x1\'] = rotate([x0, x1], angle)',
-    points: [
-      'The vector length stays the same because rotation preserves length.',
-      'Earlier positions rotate less; later positions rotate more.',
-      'Different dimension pairs rotate at different speeds.'
+    short:'Rotate',
+    label:'Position rotation',
+    stat:'Position turns into an angle',
+    title:'RoPE rotates the chosen pair',
+    lead:'For a token at position m and pair i, RoPE rotates that query or key pair by m times theta i. The vector length stays the same.',
+    formula:'theta_i = 10000^(-2i / d)\nangle = m * theta_i\nrotated_pair = rotate(pair, angle)',
+    points:[
+      'Position zero gets no rotation.',
+      'Later tokens rotate farther for the same pair.',
+      'Higher pairs rotate more slowly.'
     ]
   },
   {
-    short: 'Compare gaps',
-    title: 'The attention score sees the relative gap',
-    label: 'Rotated query-key comparison',
-    stat: 'Only m - n controls the position part',
-    lead: 'When the rotated query at position m is dotted with the rotated key at position n, the absolute positions combine into a signed gap.',
-    formula: 'q\' = R(m * theta) q\nk\' = R(n * theta) k\nq\' dot k\' = f(q, k, m - n)',
-    points: [
-      'If both positions shift by the same amount, the gap stays the same.',
-      'For fixed q and k, the RoPE position contribution is a function of m - n.',
-      'That is why RoPE naturally gives attention relative position information.'
+    short:'Compare',
+    label:'Query key comparison',
+    stat:'The gap drives the position effect',
+    title:'Attention sees the relative gap',
+    lead:'The dog query can compare with the cat key. After RoPE, their dot product contains the signed relative gap between positions.',
+    formula:'q_rot = R(m * theta) q\nk_rot = R(n * theta) k\nq_rot dot k_rot = f(q, k, m - n)',
+    points:[
+      'The query token has position m.',
+      'The key token has position n.',
+      'Only the gap m minus n remains in the position part of the score.'
     ]
   },
   {
-    short: 'Many speeds',
-    title: 'Many rotation speeds act like a position ruler',
-    label: 'Frequencies across pairs',
-    stat: 'Fast nearby, slow long range',
-    lead: 'One rotating pair would wrap around and become ambiguous. RoPE uses many pairs: fast rotations separate nearby positions, and slow rotations change gently over longer ranges.',
-    formula: 'pair i uses theta_i = 10000^(-2i / d)\nsmall i: faster rotation\nlarge i: slower rotation',
-    points: [
-      'Each pair contributes a different angle at the same token position.',
-      'The full vector carries a multi-scale position signature.',
-      'Real attention sums these effects across all query and key pairs.'
+    short:'Speeds',
+    label:'Many rotation speeds',
+    stat:'Fast pairs and slow pairs work together',
+    title:'Many pairs make a ruler',
+    lead:'One rotating pair can wrap around. RoPE uses many pairs with different speeds so nearby and farther positions both leave useful signals.',
+    formula:'theta_i = 10000^(-2i / d)\nsmall i rotates faster\nlarge i rotates slower',
+    points:[
+      'Fast pairs make nearby order easy to see.',
+      'Slow pairs change gently over longer distances.',
+      'The attention score sums information across all pairs.'
     ]
   }
 ];
@@ -552,7 +542,7 @@ function resizeCanvas(){
   const rect = canvas.getBoundingClientRect();
   const dpr = DPR();
   const w = Math.max(320, Math.round(rect.width));
-  const h = Math.max(360, Math.round(rect.height));
+  const h = Math.max(480, Math.round(rect.height));
   canvas.width = Math.round(w * dpr);
   canvas.height = Math.round(h * dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -601,7 +591,7 @@ function roundRect(x,y,w,h,r,fill,stroke){
   if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}
 }
 
-function text(str,x,y,size=14,color=palette.text,weight='500',align='left'){
+function text(str,x,y,size=14,color=palette.text,weight='600',align='left'){
   ctx.fillStyle = color;
   ctx.font = `${weight} ${size}px Inter, system-ui, sans-serif`;
   ctx.textAlign = align;
@@ -609,278 +599,266 @@ function text(str,x,y,size=14,color=palette.text,weight='500',align='left'){
   ctx.fillText(str,x,y);
 }
 
-function multiline(lines,x,y,size=13,color=palette.muted){
-  lines.forEach((item,index)=>text(item,x,y + index * (size + 7),size,color,'500'));
+function measureFont(size=14,weight='600'){
+  ctx.font = `${weight} ${size}px Inter, system-ui, sans-serif`;
 }
 
-function wrappedText(str,x,y,maxWidth,lineHeight=17,size=12,color=palette.muted,weight='500'){
+function wrappedText(str,x,y,maxWidth,lineHeight=18,size=13,color=palette.muted,weight='600',align='left'){
   const words = str.split(/\s+/);
   let lineText = '';
   let row = 0;
-  ctx.font = `${weight} ${size}px Inter, system-ui, sans-serif`;
+  measureFont(size,weight);
   words.forEach(word=>{
     const test = lineText ? `${lineText} ${word}` : word;
     if(ctx.measureText(test).width > maxWidth && lineText){
-      text(lineText,x,y + row * lineHeight,size,color,weight);
+      text(lineText,x,y + row * lineHeight,size,color,weight,align);
       lineText = word;
       row++;
     } else {
       lineText = test;
     }
   });
-  if(lineText) text(lineText,x,y + row * lineHeight,size,color,weight);
+  if(lineText) text(lineText,x,y + row * lineHeight,size,color,weight,align);
   return (row + 1) * lineHeight;
 }
 
-function drawToken(x,y,w,label,pos,color){
-  roundRect(x,y,w,46,8,'#20242d',color);
-  text(label,x+w/2,y+19,15,palette.text,'750','center');
-  text(`pos ${pos}`,x+w/2,y+35,10,palette.muted,'650','center');
+function drawSoftPanel(x,y,w,h){
+  roundRect(x,y,w,h,8,'rgba(255,255,255,.035)','rgba(255,255,255,.12)');
 }
 
-function drawStep0(w,h){
-  const order = state.swapped ? ['dog','chased','cat'] : ['cat','chased','dog'];
-  const colors = {cat:palette.teal,chased:palette.amber,dog:palette.coral};
-  const topY = 52;
-  const tokenW = Math.min(138,(w-74)/3);
-  const gap = Math.min(18,(w - tokenW * 3 - 44) / 2);
-  const startX = (w - tokenW * 3 - gap * 2) / 2;
-
-  text('Same words, different order',w/2,25,15,palette.text,'800','center');
-  order.forEach((tok,i)=>drawToken(startX+i*(tokenW+gap),topY,tokenW,tok,i,colors[tok]));
-
-  const matrixTop = 150;
-  const n = 3;
-  const size = Math.min(70,(w-120)/4);
-  const gridX = Math.max(82,(w - size*n)/2);
-  const labels = order;
-  const similarity = {
-    cat:{cat:.94,chased:.28,dog:.52},
-    chased:{cat:.35,chased:.9,dog:.35},
-    dog:{cat:.52,chased:.28,dog:.94}
-  };
-
-  text('Content-only attention heatmap',w/2,matrixTop-28,14,palette.muted,'750','center');
-  for(let i=0;i<n;i++){
-    text(labels[i],gridX-14,matrixTop+i*size+size/2,12,palette.muted,'700','right');
-    text(labels[i],gridX+i*size+size/2,matrixTop-13,12,palette.muted,'700','center');
-    for(let j=0;j<n;j++){
-      const v = similarity[labels[i]][labels[j]];
-      ctx.fillStyle = `rgba(23,190,187,${0.18 + v * 0.72})`;
-      ctx.fillRect(gridX+j*size,matrixTop+i*size,size,size);
-      ctx.strokeStyle = 'rgba(255,255,255,.12)';
-      ctx.strokeRect(gridX+j*size,matrixTop+i*size,size,size);
-      text(v.toFixed(2),gridX+j*size+size/2,matrixTop+i*size+size/2,12,palette.text,'750','center');
-    }
-  }
-
-  const noteH = w < 520 ? 82 : 62;
-  const noteY = Math.min(h-noteH-26,matrixTop+n*size+52);
-  roundRect(26,noteY,w-52,noteH,8,'rgba(242,165,65,.08)','rgba(242,165,65,.35)');
-  wrappedText(
-    'Without position, the score for cat versus dog is the same wherever those words move. A position method must add order without destroying token meaning.',
-    42,noteY+20,w-84,17,12,'#ffe3b2'
-  );
+function drawTitle(w,title,subtitle){
+  text(title,w/2,32,18,palette.text,'850','center');
+  if(subtitle) text(subtitle,w/2,57,12,palette.muted,'650','center');
 }
 
-function drawStep1(w,h){
-  text('A query or key vector is split into pairs',w/2,27,15,palette.text,'800','center');
-  const values = [0.8,0.45,-0.3,0.72,0.18,-0.82,0.62,-0.16,0.38,0.54,-0.58,0.24];
-  const cols = 12;
-  const cellW = Math.min(58,(w-40)/cols);
-  const startX = (w - cellW * cols) / 2;
-  const y = 76;
-
-  for(let i=0;i<cols;i++){
-    const pair = Math.floor(i/2);
-    const fill = i % 2 === 0 ? 'rgba(23,190,187,.2)' : 'rgba(242,165,65,.2)';
-    roundRect(startX+i*cellW,y,cellW-4,54,7,fill,'rgba(255,255,255,.12)');
-    text(`x${i}`,startX+i*cellW+(cellW-4)/2,y+18,12,palette.text,'750','center');
-    text(values[i].toFixed(2),startX+i*cellW+(cellW-4)/2,y+36,11,palette.muted,'650','center');
-    if(i % 2 === 0){
-      const bx = startX+i*cellW;
-      line(bx+5,y+66,bx+cellW*2-9,y+66,palette.green,2);
-      line(bx+5,y+60,bx+5,y+70,palette.green,2);
-      line(bx+cellW*2-9,y+60,bx+cellW*2-9,y+70,palette.green,2);
-      text(`pair ${pair}`,bx+cellW-2,y+84,11,palette.green,'800','center');
-    }
-  }
-
-  const planeY = 220;
-  const planeCols = w < 620 ? 2 : 4;
-  const planeGap = w < 620 ? Math.min(150, w * .34) : 142;
-  const firstX = w / 2 - ((planeCols - 1) * planeGap) / 2;
-  for(let p=0;p<4;p++){
-    const col = p % planeCols;
-    const row = Math.floor(p / planeCols);
-    const cx = firstX + col * planeGap;
-    const cy = planeY + row * 138;
-    const r = 42;
-    ctx.strokeStyle = 'rgba(255,255,255,.16)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(cx,cy,r,0,TAU);
-    ctx.stroke();
-    line(cx-r-8,cy,cx+r+8,cy,'rgba(255,255,255,.1)');
-    line(cx,cy-r-8,cx,cy+r+8,'rgba(255,255,255,.1)');
-    const vx = values[p*2];
-    const vy = values[p*2+1];
-    arrow(cx,cy,cx+vx*r,cy-vy*r,p % 2 ? palette.amber : palette.teal,2.5,9);
-    text(`(${`x${p*2}`}, ${`x${p*2+1}`})`,cx,cy+r+24,12,palette.muted,'700','center');
-  }
-
-  const noteY = h - 82;
-  roundRect(26,noteY,w-52,54,8,'rgba(108,192,112,.08)','rgba(108,192,112,.35)');
-  wrappedText('RoPE rotates each 2D point. The whole high-dimensional vector is handled as many small planes.',42,noteY+21,w-84,17,12,'#cfeecf');
+function drawSentence(w,y,activeIndexes=[]){
+  const gap = 10;
+  const tokenW = Math.min(128,(w - 56 - gap * 4) / 5);
+  const startX = (w - tokenW * 5 - gap * 4) / 2;
+  sentence.forEach((tok,i)=>{
+    const active = activeIndexes.includes(i);
+    const stroke = active ? palette.teal : 'rgba(255,255,255,.16)';
+    const fill = active ? 'rgba(23,190,187,.18)' : palette.tile;
+    roundRect(startX + i * (tokenW + gap), y, tokenW, 58, 8, fill, stroke);
+    text(tok.word,startX + i * (tokenW + gap) + tokenW/2,y+22,15,palette.text,'800','center');
+    text(`pos ${tok.pos}`,startX + i * (tokenW + gap) + tokenW/2,y+42,11,palette.muted,'650','center');
+  });
 }
 
-function drawCircleFrame(cx,cy,r){
+function drawVectorBars(values,x,y,w,h,color,label){
+  drawSoftPanel(x,y,w,h);
+  text(label,x+14,y+18,12,palette.text,'800');
+  const baseY = y + h * .56;
+  line(x+16,baseY,x+w-16,baseY,'rgba(255,255,255,.16)',1);
+  const gap = 8;
+  const barW = (w - 44 - gap * (values.length - 1)) / values.length;
+  values.forEach((v,i)=>{
+    const maxH = h * .34;
+    const bh = Math.abs(v) * maxH;
+    const bx = x + 22 + i * (barW + gap);
+    const by = v >= 0 ? baseY - bh : baseY;
+    ctx.fillStyle = v >= 0 ? color : palette.coral;
+    roundRect(bx,by,barW,bh || 2,4,ctx.fillStyle,null);
+    text(String(i),bx+barW/2,y+h-17,10,palette.soft,'700','center');
+  });
+}
+
+function drawPairCard(x,y,w,h,pair,label,color){
+  drawSoftPanel(x,y,w,h);
+  text(label,x+14,y+19,12,palette.text,'800');
+  const cx = x + w/2;
+  const cy = y + h*.58;
+  const r = Math.min(w*.26,h*.24);
+  drawCircle(cx,cy,r);
+  arrow(cx,cy,cx + pair[0] * r,cy - pair[1] * r,color,2.5,9);
+}
+
+function drawCircle(cx,cy,r){
   ctx.strokeStyle = 'rgba(255,255,255,.16)';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.arc(cx,cy,r,0,TAU);
   ctx.stroke();
-  line(cx-r-12,cy,cx+r+12,cy,'rgba(255,255,255,.1)');
-  line(cx,cy-r-12,cx,cy+r+12,'rgba(255,255,255,.1)');
+  line(cx-r-10,cy,cx+r+10,cy,'rgba(255,255,255,.1)');
+  line(cx,cy-r-10,cx,cy+r+10,'rgba(255,255,255,.1)');
+}
+
+function getPair(vec,i){
+  return [vec[i*2],vec[i*2+1]];
+}
+
+function cleanGap(gap){
+  if(gap === 0) return 'gap is zero';
+  return gap > 0 ? `gap is ${gap}` : `gap is ${Math.abs(gap)} back`;
+}
+
+function cleanScore(value){
+  return value >= 0 ? value.toFixed(3) : `negative ${Math.abs(value).toFixed(3)}`;
+}
+
+function drawStep0(w,h){
+  const tok = sentence[state.tokenIndex];
+  drawTitle(w,'The cat chased the dog','real sentence with toy vector values');
+  drawSentence(w,86,[state.tokenIndex]);
+
+  const panelW = Math.min(760,w-56);
+  const panelX = (w - panelW) / 2;
+  drawVectorBars(tok.emb,panelX,188,panelW,170,palette.teal,`${tok.word} embedding`);
+
+  const cardW = Math.min(520,w-56);
+  const cardX = (w - cardW) / 2;
+  const cardY = Math.min(398,h-132);
+  drawSoftPanel(cardX,cardY,cardW,104);
+  text(tok.word,cardX+24,cardY+30,22,palette.text,'850');
+  text(`position ${tok.pos}`,cardX+24,cardY+61,15,palette.amber,'800');
+  wrappedText('these numbers hold token meaning for this toy example',cardX+24,cardY+86,cardW-48,17,12,palette.muted,'650');
+}
+
+function drawStep1(w,h){
+  const tok = sentence[state.tokenIndex];
+  drawTitle(w,`${tok.word} query vector`,'query dimensions are grouped into pairs');
+  drawSentence(w,82,[state.tokenIndex]);
+
+  const panelW = Math.min(820,w-56);
+  const panelX = (w - panelW) / 2;
+  drawVectorBars(tok.q,panelX,170,panelW,136,palette.amber,'query values');
+
+  const gap = 14;
+  const pairW = (panelW - gap * 2) / 3;
+  const pairY = w < 520 ? 318 : 342;
+  const pairH = w < 520 ? 146 : 160;
+  for(let i=0;i<PAIRS;i++){
+    const x = panelX + i * (pairW + gap);
+    const active = i === state.pair;
+    roundRect(x,pairY,pairW,pairH,8,active?'rgba(23,190,187,.12)':'rgba(255,255,255,.035)',active?palette.teal:'rgba(255,255,255,.12)');
+    const pair = getPair(tok.q,i);
+    const pr = Math.min(42,pairW*.28);
+    const pcx = x + pairW/2;
+    const pcy = pairY + pairH*.64;
+    text(`pair ${i}`,x+14,pairY+24,13,active?palette.teal:palette.text,'850');
+    text(`q${i*2}  q${i*2+1}`,x+14,pairY+47,11,palette.muted,'650');
+    drawCircle(pcx,pcy,pr);
+    arrow(pcx,pcy,pcx+pair[0]*pr,pcy-pair[1]*pr,active?palette.teal:palette.amber,2.5,9);
+  }
 }
 
 function drawStep2(w,h){
-  const cx = w / 2;
-  const cy = Math.min(h * .53, 300);
-  const r = Math.min(150,w*.31,h*.29);
-  const base = .72;
+  const tok = sentence[state.tokenIndex];
+  const pair = getPair(tok.q,state.pair);
   const th = theta(state.pair);
-  const angle = state.position * th;
-  const original = [Math.cos(base),Math.sin(base)];
-  const rotated = rotate(original[0],original[1],angle);
+  const angle = tok.pos * th;
+  const rotated = rotate(pair[0],pair[1],angle);
+  const cx = w/2;
+  const cy = Math.min(300,h*.45);
+  const r = Math.min(170,w*.29,h*.24);
 
-  text('One dimension pair before and after RoPE',w/2,28,15,palette.text,'800','center');
-  drawCircleFrame(cx,cy,r);
+  drawTitle(w,`${tok.word} at position ${tok.pos}`,`pair ${state.pair} rotates by ${angle.toFixed(3)} radians`);
+  drawSentence(w,82,[state.tokenIndex]);
+  drawCircle(cx,cy,r);
 
-  for(let pos=0;pos<=Math.min(18,Math.max(10,state.position+3));pos++){
-    const a = base + pos * th;
-    ctx.fillStyle = pos === state.position ? palette.amber : 'rgba(255,255,255,.2)';
-    ctx.beginPath();
-    ctx.arc(cx + Math.cos(a) * (r+12), cy - Math.sin(a) * (r+12), pos === state.position ? 4 : 2.2, 0, TAU);
-    ctx.fill();
-  }
+  const scale = 1.1;
+  arrow(cx,cy,cx+pair[0]*r*scale,cy-pair[1]*r*scale,'rgba(154,140,255,.72)',2.2,10);
+  arrow(cx,cy,cx+rotated[0]*r*scale,cy-rotated[1]*r*scale,palette.teal,3,13);
 
-  ctx.strokeStyle = 'rgba(242,165,65,.55)';
+  ctx.strokeStyle = 'rgba(242,165,65,.6)';
   ctx.lineWidth = 2;
-  ctx.setLineDash([5,4]);
+  ctx.setLineDash([6,5]);
+  const base = Math.atan2(pair[1],pair[0]);
   ctx.beginPath();
-  ctx.arc(cx,cy,r*.48,-base,-(base+angle),true);
+  ctx.arc(cx,cy,r*.44,-base,-(base+angle),true);
   ctx.stroke();
   ctx.setLineDash([]);
 
-  arrow(cx,cy,cx+original[0]*r,cy-original[1]*r,'rgba(154,140,255,.62)',2,9);
-  arrow(cx,cy,cx+rotated[0]*r,cy-rotated[1]*r,palette.teal,3,12);
-  text('original pair',cx+original[0]*r+8,cy-original[1]*r-10,12,palette.violet,'750','left');
-  text('rotated pair',cx+rotated[0]*r+8,cy-rotated[1]*r+12,12,palette.teal,'800','left');
+  text('before',cx+pair[0]*r*scale+12,cy-pair[1]*r*scale,13,palette.violet,'800');
+  text('after',cx+rotated[0]*r*scale+12,cy-rotated[1]*r*scale,13,palette.teal,'850');
 
-  const boxW = Math.min(500,w-52);
-  const boxH = w < 520 ? 88 : 74;
-  roundRect((w-boxW)/2,h-boxH-38,boxW,boxH,8,'rgba(23,190,187,.08)','rgba(23,190,187,.35)');
-  const bx = (w-boxW)/2+18;
-  const by = h-boxH-12;
-  text(`position m = ${state.position}`,bx,by,13,palette.text,'800');
-  text(`pair i = ${state.pair}, theta_i = ${th.toFixed(5)}`,bx,by+22,12,palette.muted,'650');
-  wrappedText(`rotation angle = m * theta_i = ${angle.toFixed(3)} radians`,bx,by+43,boxW-36,16,12,palette.amber,'750');
+  const infoW = Math.min(560,w-56);
+  drawSoftPanel((w-infoW)/2,h-130,infoW,86);
+  text(`theta ${th.toFixed(5)}`,(w-infoW)/2+22,h-100,13,palette.text,'800');
+  text(`angle equals position times theta`,(w-infoW)/2+22,h-76,13,palette.amber,'800');
 }
 
-function drawVectorPanel(cx,cy,r,label,vec,pos,i,color){
-  const base = Math.atan2(vec[1],vec[0]);
-  const angle = base + pos * theta(i);
-  drawCircleFrame(cx,cy,r);
-  arrow(cx,cy,cx+Math.cos(base)*r*.78,cy-Math.sin(base)*r*.78,'rgba(255,255,255,.16)',1.5,7);
-  arrow(cx,cy,cx+Math.cos(angle)*r,cy-Math.sin(angle)*r,color,2.6,11);
-  text(`${label} at pos ${pos}`,cx,cy-r-24,13,color,'800','center');
-  text(`${(pos * theta(i)).toFixed(2)} rad`,cx,cy+r+20,11,palette.muted,'650','center');
+function drawVectorCompare(cx,cy,r,label,tok,vec,pos,i,color){
+  const pair = getPair(vec,i);
+  const rot = rotate(pair[0],pair[1],pos * theta(i));
+  drawCircle(cx,cy,r);
+  arrow(cx,cy,cx+pair[0]*r,cy-pair[1]*r,'rgba(255,255,255,.18)',1.6,7);
+  arrow(cx,cy,cx+rot[0]*r,cy-rot[1]*r,color,2.8,11);
+  text(label,cx,cy-r-38,13,color,'850','center');
+  text(tok.word,cx,cy-r-18,16,palette.text,'850','center');
+  text(`pos ${pos}`,cx,cy+r+22,12,palette.muted,'700','center');
 }
 
 function drawStep3(w,h){
-  const q = [0.82,0.57];
-  const k = [0.38,-0.92];
-  const dot = ropeDot(q,k,state.m,state.n,state.pair);
-  const gap = state.m - state.n;
-  const stacked = w < 640;
-  const r = stacked ? Math.min(52,w*.16) : Math.min(104,w*.15);
-  const qx = stacked ? w*.29 : w*.24;
-  const qy = stacked ? 128 : h*.43;
-  const kx = stacked ? w*.71 : w*.56;
-  const ky = qy;
+  const qTok = sentence[state.queryIndex];
+  const kTok = sentence[state.keyIndex];
+  const qPair = getPair(qTok.q,state.pair);
+  const kPair = getPair(kTok.k,state.pair);
+  const score = ropeDot(qPair,kPair,qTok.pos,kTok.pos,state.pair);
+  const gap = qTok.pos - kTok.pos;
+  const stacked = w < 660;
+  const r = stacked ? Math.min(70,w*.17) : Math.min(124,w*.14);
+  const qx = stacked ? w*.31 : w*.25;
+  const kx = stacked ? w*.69 : w*.55;
+  const y = stacked ? 210 : 315;
 
-  text('RoPE makes the score depend on the relative gap',w/2,28,15,palette.text,'800','center');
-  drawVectorPanel(qx,qy,r,'query q',q,state.m,state.pair,palette.teal);
-  drawVectorPanel(kx,ky,r,'key k',k,state.n,state.pair,palette.amber);
-  line(qx+r+14,qy,kx-r-14,ky,'rgba(255,255,255,.16)',1);
-  text('dot product', (qx+kx)/2, qy-18,12,palette.muted,'700','center');
+  drawTitle(w,`${qTok.word} looks at ${kTok.word}`,cleanGap(gap));
+  drawSentence(w,82,[state.queryIndex,state.keyIndex]);
+  drawVectorCompare(qx,y,r,'query',qTok,qTok.q,qTok.pos,state.pair,palette.teal);
+  drawVectorCompare(kx,y,r,'key',kTok,kTok.k,kTok.pos,state.pair,palette.amber);
+  line(qx+r+16,y,kx-r-16,y,'rgba(255,255,255,.16)',1);
+  text('dot product',(qx+kx)/2,y-20,12,palette.muted,'750','center');
 
   const barX = stacked ? w/2 : w*.82;
-  const barY = stacked ? h-148 : h*.45;
-  const barH = stacked ? 76 : 138;
-  const barW = 34;
+  const barY = stacked ? h-106 : 318;
+  const barH = stacked ? 78 : 172;
+  const barW = 42;
+  drawSoftPanel(barX-62,barY-barH/2-54,124,barH+108);
+  text('score',barX,barY-barH/2-26,13,palette.text,'850','center');
+  text(cleanScore(score),barX,barY-barH/2-4,score>=0?18:13,score>=0?palette.green:palette.coral,'850','center');
   roundRect(barX-barW/2,barY-barH/2,barW,barH,7,'rgba(255,255,255,.06)','rgba(255,255,255,.18)');
-  line(barX-barW/2-10,barY,barX+barW/2+10,barY,'rgba(255,255,255,.32)',1.5);
-  const fillH = Math.min(1,Math.abs(dot)) * (barH/2);
-  ctx.fillStyle = dot >= 0 ? palette.green : palette.coral;
-  ctx.fillRect(barX-barW/2, dot >= 0 ? barY-fillH : barY, barW, fillH);
-  text(dot.toFixed(3),barX,barY-barH/2-20,18,palette.text,'800','center');
-  text('q\' dot k\'',barX,barY-barH/2-40,12,palette.muted,'700','center');
-
-  const boxH = w < 520 ? 74 : 58;
-  const boxY = h - boxH - 28;
-  roundRect(26,boxY,w-52,boxH,8,'rgba(108,192,112,.08)','rgba(108,192,112,.35)');
-  text(`m - n = ${state.m} - ${state.n} = ${gap}`,44,boxY+22,14,palette.green,'850');
-  wrappedText('same q and k plus same gap gives the same RoPE position effect',44,boxY+43,w-88,16,12,palette.muted,'650');
+  line(barX-barW/2-10,barY,barX+barW/2+10,barY,'rgba(255,255,255,.3)',1.4);
+  const fillH = Math.min(1,Math.abs(score)) * (barH/2);
+  ctx.fillStyle = score >= 0 ? palette.green : palette.coral;
+  ctx.fillRect(barX-barW/2, score >= 0 ? barY-fillH : barY, barW, fillH);
+  text(cleanGap(gap),barX,barY+barH/2+28,12,palette.amber,'800','center');
 }
 
 function drawStep4(w,h){
-  text('The same position creates many angles',w/2,28,15,palette.text,'800','center');
-  const pos = state.multiPosition;
-  const cols = w < 640 ? 3 : 6;
-  const cellW = (w - 48) / cols;
-  const startY = w < 640 ? 58 : 72;
-  const rowSpacing = w < 640 ? 134 : 138;
-  const r = Math.min(w < 640 ? 34 : 44,cellW*.27);
+  const tok = sentence[state.tokenIndex];
+  const pos = state.position;
+  drawTitle(w,`position ${pos} across pairs`,'each clock is one pair speed');
+  drawSentence(w,82,[state.tokenIndex]);
+
+  const cols = PAIRS;
+  const cellW = Math.min(w < 680 ? 132 : 190,(w-56)/cols);
+  const totalW = cellW * cols;
+  const startX = (w-totalW)/2;
+  const baseY = w < 680 ? 188 : 210;
+  const r = Math.min(w < 680 ? 48 : 74,cellW*.32);
   for(let i=0;i<PAIRS;i++){
-    const row = Math.floor(i/cols);
+    const pairIndex = i;
+    const row = 0;
     const col = i % cols;
-    const cx = 24 + cellW * col + cellW/2;
-    const cy = startY + row * rowSpacing + 50;
-    const angle = pos * theta(i) - Math.PI / 2;
-    drawCircleFrame(cx,cy,r);
+    const cx = startX + col * cellW + cellW/2;
+    const cy = baseY + row * 145 + 54;
+    const angle = pos * theta(pairIndex) - Math.PI/2;
+    drawSoftPanel(cx-cellW*.42,cy-58,cellW*.84,122);
+    drawCircle(cx,cy,r);
     for(let t=0;t<12;t++){
       const a = t / 12 * TAU;
       line(cx+Math.cos(a)*(r-5),cy+Math.sin(a)*(r-5),cx+Math.cos(a)*r,cy+Math.sin(a)*r,'rgba(255,255,255,.22)',1);
     }
-    arrow(cx,cy,cx+Math.cos(angle)*r*.82,cy+Math.sin(angle)*r*.82,i < 2 ? palette.coral : i < 4 ? palette.amber : palette.teal,2.5,9);
-    text(`pair ${i}`,cx,cy+r+20,12,palette.text,'800','center');
-    text(`theta ${theta(i).toFixed(4)}`,cx,cy+r+38,10,palette.muted,'650','center');
+    const color = pairIndex === 0 ? palette.coral : pairIndex === 1 ? palette.amber : palette.teal;
+    arrow(cx,cy,cx+Math.cos(angle)*r*.82,cy+Math.sin(angle)*r*.82,color,2.5,9);
+    text(`pair ${pairIndex}`,cx,cy+r+20,12,palette.text,'800','center');
   }
 
-  if(w < 640){
-    roundRect(26,h-70,w-52,44,8,'rgba(23,190,187,.08)','rgba(23,190,187,.35)');
-    text(`position m = ${pos}`,44,h-47,12,palette.text,'800');
-    wrappedText('faster pairs move more; slower pairs keep long-range signal',44,h-29,w-88,14,11,palette.muted,'650');
-    return;
-  }
-
-  const chartY = h - 135;
-  const chartX = 42;
-  const chartW = w - 84;
-  const chartH = 82;
-  roundRect(chartX,chartY,chartW,chartH,8,'rgba(255,255,255,.035)','rgba(255,255,255,.12)');
-  text(`position m = ${pos}`,chartX+14,chartY+18,12,palette.text,'800');
-  for(let i=0;i<PAIRS;i++){
-    const th = theta(i);
-    const x = chartX + 18 + i * ((chartW - 36) / (PAIRS - 1));
-    const barH = Math.min(46,Math.max(4,th * 46));
-    ctx.fillStyle = i < 2 ? palette.coral : i < 4 ? palette.amber : palette.teal;
-    ctx.fillRect(x-8,chartY+chartH-18-barH,16,barH);
-    text(String(i),x,chartY+chartH-9,10,palette.muted,'700','center');
-  }
-  text('relative rotation speed by pair',chartX+chartW-14,chartY+18,11,palette.muted,'650','right');
+  const panelW = Math.min(720,w-56);
+  const panelX = (w-panelW)/2;
+  drawSoftPanel(panelX,h-132,panelW,82);
+  text(`${tok.word} position ${pos}`,panelX+22,h-102,14,palette.text,'850');
+  wrappedText('fast pairs turn more while slow pairs keep a steadier signal',panelX+22,h-76,panelW-44,17,12,palette.muted,'650');
 }
 
 function draw(){
@@ -896,15 +874,9 @@ function draw(){
 function setStep(index){
   state.step = Math.max(0,Math.min(steps.length-1,index));
   const step = steps[state.step];
-  $('step-count').textContent = `Step ${state.step + 1} of ${steps.length}`;
-  $('step-title').textContent = step.title;
-  $('step-lead').textContent = step.lead;
-  $('step-formula').textContent = step.formula;
   $('canvas-label').textContent = step.label;
   $('canvas-stat').textContent = step.stat;
-  $('step-points').innerHTML = step.points.map(point => `<li>${point}</li>`).join('');
-  $('prev-step').disabled = state.step === 0;
-  $('next-step').textContent = state.step === steps.length - 1 ? 'Restart' : 'Next';
+  updateDrawer();
   renderTabs();
   renderControls();
   draw();
@@ -923,14 +895,40 @@ function renderTabs(){
   });
 }
 
-function slider(id,label,value,min,max){
+function tokenOptions(selected){
+  return sentence.map((tok,index)=>`<option value="${index}" ${index===selected?'selected':''}>${tok.word} ${tok.pos}</option>`).join('');
+}
+
+function pairOptions(selected){
+  return Array.from({length:PAIRS},(_,i)=>`<option value="${i}" ${i===selected?'selected':''}>pair ${i}</option>`).join('');
+}
+
+function controlSelect(id,label,options){
   return `
-    <div class="slider-block">
-      <label class="slider-label" for="${id}">
-        <span>${label}</span>
-        <strong id="${id}-value">${value}</strong>
-      </label>
+    <div class="control">
+      <label for="${id}"><span>${label}</span></label>
+      <select id="${id}">${options}</select>
+    </div>
+  `;
+}
+
+function controlRange(id,label,value,min,max){
+  return `
+    <div class="control">
+      <label for="${id}"><span>${label}</span><strong id="${id}-value">${value}</strong></label>
       <input id="${id}" type="range" min="${min}" max="${max}" value="${value}">
+    </div>
+  `;
+}
+
+function navButtons(){
+  return `
+    <div class="button-row">
+      <button class="secondary" id="prev-step">Previous</button>
+      <button id="next-step">${state.step === steps.length - 1 ? 'Restart' : 'Next'}</button>
+    </div>
+    <div class="button-row">
+      <button class="secondary" id="step-explain">Explanation</button>
     </div>
   `;
 }
@@ -939,52 +937,59 @@ function renderControls(){
   const controls = $('controls');
   if(state.step === 0){
     controls.innerHTML = `
-      <div class="control-row">
-        <span class="mini-note">Toggle the word order. The toy heatmap changes location, but it still follows token content.</span>
-        <button id="swap-order">${state.swapped ? 'Show original order' : 'Swap word order'}</button>
-      </div>
+      ${controlSelect('token-choice','Token',tokenOptions(state.tokenIndex))}
+      ${navButtons()}
     `;
-    $('swap-order').addEventListener('click',()=>{
-      state.swapped = !state.swapped;
-      renderControls();
-      draw();
-    });
+    bindSelect('token-choice','tokenIndex');
   }
-  if(state.step === 1){
+  if(state.step === 1 || state.step === 2){
     controls.innerHTML = `
-      <span class="mini-note">Read each adjacent pair as coordinates in a small 2D plane. RoPE rotates these planes independently.</span>
+      ${controlSelect('token-choice','Token',tokenOptions(state.tokenIndex))}
+      ${controlSelect('pair-choice','Pair',pairOptions(state.pair))}
+      ${navButtons()}
     `;
-  }
-  if(state.step === 2){
-    controls.innerHTML = `
-      ${slider('position','Token position m',state.position,0,18)}
-      ${slider('pair','Dimension pair i',state.pair,0,PAIRS-1)}
-    `;
-    bindRange('position','position');
-    bindRange('pair','pair');
+    bindSelect('token-choice','tokenIndex');
+    bindSelect('pair-choice','pair');
   }
   if(state.step === 3){
     controls.innerHTML = `
-      ${slider('m','Query position m',state.m,0,20)}
-      ${slider('n','Key position n',state.n,0,20)}
-      ${slider('gap-pair','Dimension pair i',state.pair,0,PAIRS-1)}
-      <div class="control-row">
-        <button class="secondary" id="shift-left">Shift both left</button>
-        <button class="secondary" id="shift-right">Shift both right</button>
-      </div>
+      ${controlSelect('query-choice','Query token',tokenOptions(state.queryIndex))}
+      ${controlSelect('key-choice','Key token',tokenOptions(state.keyIndex))}
+      ${controlSelect('pair-choice','Pair',pairOptions(state.pair))}
+      ${navButtons()}
     `;
-    bindRange('m','m');
-    bindRange('n','n');
-    bindRange('gap-pair','pair');
-    $('shift-left').addEventListener('click',()=>shiftBoth(-1));
-    $('shift-right').addEventListener('click',()=>shiftBoth(1));
+    bindSelect('query-choice','queryIndex');
+    bindSelect('key-choice','keyIndex');
+    bindSelect('pair-choice','pair');
   }
   if(state.step === 4){
     controls.innerHTML = `
-      ${slider('multiPosition','Token position m',state.multiPosition,0,80)}
+      ${controlSelect('token-choice','Token',tokenOptions(state.tokenIndex))}
+      ${controlRange('position-choice','Position',state.position,0,24)}
+      ${navButtons()}
     `;
-    bindRange('multiPosition','multiPosition');
+    bindSelect('token-choice','tokenIndex');
+    bindRange('position-choice','position');
   }
+  $('prev-step').disabled = state.step === 0;
+  $('prev-step').addEventListener('click',()=>setStep(state.step - 1));
+  $('next-step').addEventListener('click',()=>setStep(state.step === steps.length - 1 ? 0 : state.step + 1));
+  $('step-explain').addEventListener('click',openExplain);
+}
+
+function bindSelect(id,key){
+  const input = $(id);
+  input.addEventListener('change',()=>{
+    state[key] = Number(input.value);
+    if(key === 'tokenIndex'){
+      state.position = sentence[state.tokenIndex].pos;
+      const posInput = document.getElementById('position-choice');
+      const posValue = document.getElementById('position-choice-value');
+      if(posInput) posInput.value = state.position;
+      if(posValue) posValue.textContent = state.position;
+    }
+    draw();
+  });
 }
 
 function bindRange(id,key){
@@ -997,27 +1002,39 @@ function bindRange(id,key){
   });
 }
 
-function shiftBoth(delta){
-  const nextM = state.m + delta;
-  const nextN = state.n + delta;
-  if(nextM < 0 || nextN < 0 || nextM > 20 || nextN > 20) return;
-  state.m = nextM;
-  state.n = nextN;
-  renderControls();
-  draw();
+function updateDrawer(){
+  const step = steps[state.step];
+  $('drawer-step-title').textContent = step.title;
+  $('drawer-lead').textContent = step.lead;
+  $('drawer-formula').textContent = step.formula;
+  $('drawer-points').innerHTML = step.points.map(point=>`<li>${point}</li>`).join('');
 }
 
-$('prev-step').addEventListener('click',()=>setStep(state.step - 1));
-$('next-step').addEventListener('click',()=>setStep(state.step === steps.length - 1 ? 0 : state.step + 1));
+function openExplain(){
+  updateDrawer();
+  $('explain-backdrop').classList.add('open');
+}
 
-const modal = $('compare-modal');
-$('open-compare').addEventListener('click',()=>modal.classList.add('open'));
-$('close-compare').addEventListener('click',()=>modal.classList.remove('open'));
-modal.addEventListener('click',event=>{
-  if(event.target === modal) modal.classList.remove('open');
+function closeExplain(){
+  $('explain-backdrop').classList.remove('open');
+}
+
+const compareModal = $('compare-modal');
+$('open-explain').addEventListener('click',openExplain);
+$('close-explain').addEventListener('click',closeExplain);
+$('explain-backdrop').addEventListener('click',event=>{
+  if(event.target === $('explain-backdrop')) closeExplain();
+});
+$('open-compare').addEventListener('click',()=>compareModal.classList.add('open'));
+$('close-compare').addEventListener('click',()=>compareModal.classList.remove('open'));
+compareModal.addEventListener('click',event=>{
+  if(event.target === compareModal) compareModal.classList.remove('open');
 });
 window.addEventListener('keydown',event=>{
-  if(event.key === 'Escape') modal.classList.remove('open');
+  if(event.key === 'Escape'){
+    closeExplain();
+    compareModal.classList.remove('open');
+  }
 });
 window.addEventListener('resize',draw);
 
