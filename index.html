@@ -740,21 +740,27 @@ function cleanScore(value){
 function drawStep0(w,h){
   const tok = sentence[state.tokenIndex];
   drawTitle(w,`${tok.word} as numbers`,'an embedding is the token vector before attention');
-  drawSentence(w,86,[state.tokenIndex]);
+  drawSentence(w,82,[state.tokenIndex]);
 
   const panelW = Math.min(760,w-56);
   const panelX = (w - panelW) / 2;
-  drawVectorBars(tok.emb,panelX,188,panelW,170,palette.teal,`${tok.word} embedding vector`);
-  drawFlow(panelX,374,panelW);
+
+  // Bars height adapts so everything fits without overlap
+  const barsY = 160;
+  const barsH = Math.max(90, Math.min(170, h - 360));
+  drawVectorBars(tok.emb,panelX,barsY,panelW,barsH,palette.teal,`${tok.word} embedding vector`);
+
+  const flowY = barsY + barsH + 14;
+  drawFlow(panelX,flowY,panelW);
 
   const cardW = Math.min(520,w-56);
   const cardX = (w - cardW) / 2;
-  const cardY = Math.min(436,h-132);
-  drawSoftPanel(cardX,cardY,cardW,112);
-  text('What this means',cardX+24,cardY+28,18,palette.amber,'850');
-  const copyY = cardY + 58;
-  const copyH = wrappedText('This is the token embedding vector. Each bar is one dimension.',cardX+24,copyY,cardW-48,17,12,palette.muted,'650');
-  wrappedText('Height shows size. Color shows positive or negative.',cardX+24,copyY+copyH+4,cardW-48,17,12,palette.muted,'650');
+  const cardY = flowY + 56; // 42px flow height + 14px gap
+  if(cardY + 94 <= h - 8){
+    drawSoftPanel(cardX,cardY,cardW,94);
+    text('What this means',cardX+24,cardY+22,14,palette.amber,'850');
+    wrappedText('Each bar is one number in the embedding. Height shows magnitude; teal = positive, coral = negative.',cardX+24,cardY+48,cardW-48,17,12,palette.muted,'650');
+  }
 }
 
 function drawStep1(w,h){
@@ -764,12 +770,16 @@ function drawStep1(w,h){
 
   const panelW = Math.min(820,w-56);
   const panelX = (w - panelW) / 2;
-  drawVectorBars(tok.q,panelX,170,panelW,136,palette.amber,'query values');
+
+  // Bars height leaves room for pair cards below
+  const barsY = 160;
+  const barsH = Math.max(90, Math.min(140, h - 380));
+  drawVectorBars(tok.q,panelX,barsY,panelW,barsH,palette.amber,'query values');
 
   const gap = 14;
+  const pairY = barsY + barsH + 20;
+  const pairH = Math.max(120, Math.min(170, h - pairY - 14));
   const pairW = (panelW - gap * 2) / 3;
-  const pairY = w < 520 ? 318 : 342;
-  const pairH = w < 520 ? 146 : 160;
   for(let i=0;i<PAIRS;i++){
     const x = panelX + i * (pairW + gap);
     const active = i === state.pair;
@@ -778,8 +788,8 @@ function drawStep1(w,h){
     const pr = Math.min(42,pairW*.28);
     const pcx = x + pairW/2;
     const pcy = pairY + pairH*.64;
-    text(`pair ${i}`,x+14,pairY+24,13,active?palette.teal:palette.text,'850');
-    text(`q${i*2}, q${i*2+1}`,x+14,pairY+47,11,palette.muted,'650');
+    text(`pair ${i}`,x+14,pairY+22,13,active?palette.teal:palette.text,'850');
+    text(`q${i*2}, q${i*2+1}`,x+14,pairY+44,11,palette.muted,'650');
     drawCircle(pcx,pcy,pr);
     arrow(pcx,pcy,pcx+pair[0]*pr,pcy-pair[1]*pr,active?palette.teal:palette.amber,2.5,9);
   }
@@ -791,15 +801,29 @@ function drawStep2(w,h){
   const th = theta(state.pair);
   const angle = tok.pos * th;
   const rotated = rotate(pair[0],pair[1],angle);
-  const cx = w/2;
-  const cy = Math.min(300,h*.45);
-  const r = Math.min(170,w*.29,h*.24);
 
   drawTitle(w,`${tok.word} at position ${tok.pos}`,`pair ${state.pair} rotates by ${angle.toFixed(3)} radians`);
   drawSentence(w,82,[state.tokenIndex]);
+
+  // Anchor info panel at bottom first, then fit circle in remaining space
+  const infoH = 78;
+  const infoW = Math.min(560,w-56);
+  const infoY = h - infoH - 8;
+  drawSoftPanel((w-infoW)/2,infoY,infoW,infoH);
+  text(`θ for pair ${state.pair} = ${th.toFixed(5)}`,(w-infoW)/2+22,infoY+22,13,palette.text,'800');
+  text(`rotation = position × θ = ${angle.toFixed(4)} rad`,(w-infoW)/2+22,infoY+50,13,palette.amber,'800');
+
+  // Circle centered in space between sentence bottom (140) and info panel
+  const topBound = 152;
+  const bottomBound = infoY - 12;
+  const avail = bottomBound - topBound;
+  const r = Math.min(170, w*.28, avail * 0.44);
+  const cx = w/2;
+  const cy = topBound + avail/2;
+
   drawCircle(cx,cy,r);
 
-  const scale = 1.1;
+  const scale = 1.08;
   arrow(cx,cy,cx+pair[0]*r*scale,cy-pair[1]*r*scale,'rgba(154,140,255,.72)',2.2,10);
   arrow(cx,cy,cx+rotated[0]*r*scale,cy-rotated[1]*r*scale,palette.teal,3,13);
 
@@ -812,13 +836,11 @@ function drawStep2(w,h){
   ctx.stroke();
   ctx.setLineDash([]);
 
-  text('before',cx+pair[0]*r*scale+12,cy-pair[1]*r*scale,13,palette.violet,'800');
-  text('after',cx+rotated[0]*r*scale+12,cy-rotated[1]*r*scale,13,palette.teal,'850');
-
-  const infoW = Math.min(560,w-56);
-  drawSoftPanel((w-infoW)/2,h-130,infoW,86);
-  text(`theta ${th.toFixed(5)}`,(w-infoW)/2+22,h-100,13,palette.text,'800');
-  text(`angle equals position times theta`,(w-infoW)/2+22,h-76,13,palette.amber,'800');
+  // Label offsets flip side when arrow points left to avoid going off-canvas
+  const bx = pair[0]*r*scale, by = pair[1]*r*scale;
+  const rx = rotated[0]*r*scale, ry = rotated[1]*r*scale;
+  text('before',cx+bx+(bx>=0?10:-58),cy-by,13,palette.violet,'800');
+  text('after', cx+rx+(rx>=0?10:-50),cy-ry,13,palette.teal,'850');
 }
 
 function drawVectorCompare(cx,cy,r,label,tok,vec,pos,i,color){
@@ -840,31 +862,56 @@ function drawStep3(w,h){
   const score = ropeDot(qPair,kPair,qTok.pos,kTok.pos,state.pair);
   const gap = qTok.pos - kTok.pos;
   const stacked = w < 660;
-  const r = stacked ? Math.min(70,w*.17) : Math.min(124,w*.14);
-  const qx = stacked ? w*.31 : w*.25;
-  const kx = stacked ? w*.69 : w*.55;
-  const y = stacked ? 210 : 315;
+  const r = stacked ? Math.min(64,w*.16) : Math.min(124,w*.14);
+  const qx = stacked ? w*.30 : w*.25;
+  const kx = stacked ? w*.70 : w*.55;
+
+  // In stacked mode, labels sit 38px above circle top; must clear sentence (bottom=140)
+  const minCy = stacked ? 152 + 38 + r : 315;
+  const y = stacked ? Math.max(minCy, 262) : 315;
 
   drawTitle(w,`${qTok.word} looks at ${kTok.word}`,cleanGap(gap));
   drawSentence(w,82,[state.queryIndex,state.keyIndex]);
   drawVectorCompare(qx,y,r,'query',qTok,qTok.q,qTok.pos,state.pair,palette.teal);
   drawVectorCompare(kx,y,r,'key',kTok,kTok.k,kTok.pos,state.pair,palette.amber);
-  line(qx+r+16,y,kx-r-16,y,'rgba(255,255,255,.16)',1);
+
+  // Only draw connector line if the circles have a visible gap
+  if(kx - r - (qx + r) > 12){
+    line(qx+r+8,y,kx-r-8,y,'rgba(255,255,255,.16)',1);
+  }
   text('dot product',(qx+kx)/2,y-20,12,palette.muted,'750','center');
 
+  // Score bar: in stacked mode place it below circles to avoid overlap
   const barX = stacked ? w/2 : w*.82;
-  const barY = stacked ? h-106 : 318;
-  const barH = stacked ? 78 : 172;
+  const barY = stacked ? y + r + 80 : 318;
+  const barH = stacked ? 60 : 172;
   const barW = 42;
-  drawSoftPanel(barX-62,barY-barH/2-54,124,barH+108);
-  text('pair score',barX,barY-barH/2-26,13,palette.text,'850','center');
-  text(cleanScore(score),barX,barY-barH/2-4,15,score>=0?palette.green:palette.coral,'850','center');
-  roundRect(barX-barW/2,barY-barH/2,barW,barH,7,'rgba(255,255,255,.06)','rgba(255,255,255,.18)');
-  line(barX-barW/2-10,barY,barX+barW/2+10,barY,'rgba(255,255,255,.3)',1.4);
-  const fillH = Math.min(1,Math.abs(score)) * (barH/2);
-  ctx.fillStyle = score >= 0 ? palette.green : palette.coral;
-  ctx.fillRect(barX-barW/2, score >= 0 ? barY-fillH : barY, barW, fillH);
-  text(cleanGap(gap),barX,barY+barH/2+28,12,palette.amber,'800','center');
+
+  if(stacked){
+    const pt = barY - barH/2 - 36;
+    const ph = barH + 72;
+    if(pt + ph <= h - 4){
+      drawSoftPanel(barX-62,pt,124,ph);
+      text('pair score',barX,pt+20,13,palette.text,'850','center');
+      text(cleanScore(score),barX,pt+40,15,score>=0?palette.green:palette.coral,'850','center');
+      roundRect(barX-barW/2,barY-barH/2,barW,barH,7,'rgba(255,255,255,.06)','rgba(255,255,255,.18)');
+      line(barX-barW/2-8,barY,barX+barW/2+8,barY,'rgba(255,255,255,.3)',1.4);
+      const fillH = Math.min(1,Math.abs(score))*(barH/2);
+      ctx.fillStyle = score>=0?palette.green:palette.coral;
+      ctx.fillRect(barX-barW/2,score>=0?barY-fillH:barY,barW,fillH);
+      text(cleanGap(gap),barX,pt+ph-16,12,palette.amber,'800','center');
+    }
+  } else {
+    drawSoftPanel(barX-62,barY-barH/2-54,124,barH+108);
+    text('pair score',barX,barY-barH/2-26,13,palette.text,'850','center');
+    text(cleanScore(score),barX,barY-barH/2-4,15,score>=0?palette.green:palette.coral,'850','center');
+    roundRect(barX-barW/2,barY-barH/2,barW,barH,7,'rgba(255,255,255,.06)','rgba(255,255,255,.18)');
+    line(barX-barW/2-10,barY,barX+barW/2+10,barY,'rgba(255,255,255,.3)',1.4);
+    const fillH = Math.min(1,Math.abs(score))*(barH/2);
+    ctx.fillStyle = score>=0?palette.green:palette.coral;
+    ctx.fillRect(barX-barW/2,score>=0?barY-fillH:barY,barW,fillH);
+    text(cleanGap(gap),barX,barY+barH/2+28,12,palette.amber,'800','center');
+  }
 }
 
 function drawStep4(w,h){
@@ -879,29 +926,35 @@ function drawStep4(w,h){
   const startX = (w-totalW)/2;
   const baseY = w < 680 ? 188 : 210;
   const r = Math.min(w < 680 ? 48 : 74,cellW*.32);
+  const clockCy = baseY + 54;
+
   for(let i=0;i<PAIRS;i++){
-    const pairIndex = i;
-    const row = 0;
-    const col = i % cols;
-    const cx = startX + col * cellW + cellW/2;
-    const cy = baseY + row * 145 + 54;
-    const angle = pos * theta(pairIndex) - Math.PI/2;
+    const cx = startX + (i % cols) * cellW + cellW/2;
+    const cy = clockCy;
+    const angle = pos * theta(i) - Math.PI/2;
     drawSoftPanel(cx-cellW*.42,cy-58,cellW*.84,122);
     drawCircle(cx,cy,r);
     for(let t=0;t<12;t++){
       const a = t / 12 * TAU;
       line(cx+Math.cos(a)*(r-5),cy+Math.sin(a)*(r-5),cx+Math.cos(a)*r,cy+Math.sin(a)*r,'rgba(255,255,255,.22)',1);
     }
-    const color = pairIndex === 0 ? palette.coral : pairIndex === 1 ? palette.amber : palette.teal;
+    const color = i===0?palette.coral:i===1?palette.amber:palette.teal;
     arrow(cx,cy,cx+Math.cos(angle)*r*.82,cy+Math.sin(angle)*r*.82,color,2.5,9);
-    text(`pair ${pairIndex}`,cx,cy+r+20,12,palette.text,'800','center');
+    text(`pair ${i}`,cx,cy+r+20,12,palette.text,'800','center');
   }
 
+  // Info panel anchored below clocks, never overlapping the "pair N" labels
   const panelW = Math.min(720,w-56);
   const panelX = (w-panelW)/2;
-  drawSoftPanel(panelX,h-132,panelW,82);
-  text(`${tok.word} position ${pos}`,panelX+22,h-102,14,palette.text,'850');
-  wrappedText('fast pairs turn more while slow pairs keep a steadier signal',panelX+22,h-76,panelW-44,17,12,palette.muted,'650');
+  const panelY = Math.max(clockCy + r + 32, h - 112);
+  if(panelY + 80 <= h - 4){
+    drawSoftPanel(panelX,panelY,panelW,80);
+    text(`${tok.word} at position ${pos}`,panelX+22,panelY+22,14,palette.text,'850');
+    wrappedText(
+      `Pair 0 has rotated ${(pos*theta(0)).toFixed(3)} rad. Pair 2 has rotated ${(pos*theta(2)).toFixed(4)} rad. Fast pairs distinguish nearby tokens; slow pairs encode longer-range order.`,
+      panelX+22,panelY+50,panelW-44,17,12,palette.muted,'650'
+    );
+  }
 }
 
 function draw(){
