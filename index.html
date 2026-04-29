@@ -20,6 +20,7 @@
   --green:#6cc070;
   --violet:#9a8cff;
   --shadow:0 18px 50px rgba(0,0,0,.28);
+  --ui-scale:.9;
 }
 html{min-height:100%}
 body{
@@ -59,13 +60,15 @@ select{
   padding:.48rem .7rem;
 }
 .app{
-  width:min(1280px,calc(100vw - 32px));
+  width:min(calc(1280px / var(--ui-scale)),calc((100vw - 32px) / var(--ui-scale)));
   margin:0 auto;
-  height:100vh;
+  height:calc(100vh / var(--ui-scale));
   padding:12px 0;
   display:flex;
   flex-direction:column;
   min-height:0;
+  transform:scale(var(--ui-scale));
+  transform-origin:top center;
 }
 .topbar{
   display:flex;
@@ -329,7 +332,7 @@ code{
   #viz{min-height:0}
 }
 @media(max-width:680px){
-  .app{width:calc(100% - 20px);padding-top:12px}
+  .app{width:calc((100% - 20px) / var(--ui-scale));padding-top:12px}
   .topbar{align-items:flex-start;flex-direction:column}
   .top-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
   .brand h1{font-size:1rem}
@@ -500,7 +503,7 @@ const steps = [
     points:[
       'Position zero gets no rotation.',
       'Later tokens rotate farther for the same pair.',
-      'Higher pairs rotate more slowly.'
+      'Higher-indexed pairs rotate more slowly.'
     ]
   },
   {
@@ -508,12 +511,13 @@ const steps = [
     label:'Query key comparison',
     stat:'The gap drives the position effect',
     title:'Attention sees the relative gap',
-    lead:'The dog query can compare with the cat key. After RoPE, their dot product contains the signed relative gap between positions.',
+    lead:'The dog query can compare with the cat key. After RoPE, each pair\'s dot product depends only on the relative position gap, not the absolute positions. The full attention score sums these contributions across all pairs.',
     formula:'q_rot = R(m * theta) q\nk_rot = R(n * theta) k\nq_rot dot k_rot = f(q, k, m - n)',
     points:[
       'The query token has position m.',
       'The key token has position n.',
-      'Only the gap m minus n remains in the position part of the score.'
+      'Only the gap m minus n determines the position part of the score.',
+      'The bar shows one pair\'s contribution. The full attention score sums across all pairs.'
     ]
   },
   {
@@ -726,7 +730,7 @@ function getPair(vec,i){
 
 function cleanGap(gap){
   if(gap === 0) return 'gap is zero';
-  return gap > 0 ? `gap is ${gap}` : `gap is ${Math.abs(gap)} back`;
+  return gap > 0 ? `query is ${gap} ahead` : `key is ${Math.abs(gap)} ahead`;
 }
 
 function cleanScore(value){
@@ -775,7 +779,7 @@ function drawStep1(w,h){
     const pcx = x + pairW/2;
     const pcy = pairY + pairH*.64;
     text(`pair ${i}`,x+14,pairY+24,13,active?palette.teal:palette.text,'850');
-    text(`q${i*2}  q${i*2+1}`,x+14,pairY+47,11,palette.muted,'650');
+    text(`q${i*2}, q${i*2+1}`,x+14,pairY+47,11,palette.muted,'650');
     drawCircle(pcx,pcy,pr);
     arrow(pcx,pcy,pcx+pair[0]*pr,pcy-pair[1]*pr,active?palette.teal:palette.amber,2.5,9);
   }
@@ -853,8 +857,8 @@ function drawStep3(w,h){
   const barH = stacked ? 78 : 172;
   const barW = 42;
   drawSoftPanel(barX-62,barY-barH/2-54,124,barH+108);
-  text('score',barX,barY-barH/2-26,13,palette.text,'850','center');
-  text(cleanScore(score),barX,barY-barH/2-4,score>=0?18:13,score>=0?palette.green:palette.coral,'850','center');
+  text('pair score',barX,barY-barH/2-26,13,palette.text,'850','center');
+  text(cleanScore(score),barX,barY-barH/2-4,15,score>=0?palette.green:palette.coral,'850','center');
   roundRect(barX-barW/2,barY-barH/2,barW,barH,7,'rgba(255,255,255,.06)','rgba(255,255,255,.18)');
   line(barX-barW/2-10,barY,barX+barW/2+10,barY,'rgba(255,255,255,.3)',1.4);
   const fillH = Math.min(1,Math.abs(score)) * (barH/2);
@@ -1073,6 +1077,13 @@ window.addEventListener('keydown',event=>{
   if(event.key === 'Escape'){
     closeExplain();
     compareModal.classList.remove('open');
+  }
+  const modalOpen = $('explain-backdrop').classList.contains('open') || compareModal.classList.contains('open');
+  if(!modalOpen && event.key === 'ArrowRight'){
+    setStep(state.step >= steps.length - 1 ? 0 : state.step + 1);
+  }
+  if(!modalOpen && event.key === 'ArrowLeft'){
+    setStep(state.step - 1);
   }
 });
 window.addEventListener('resize',draw);
